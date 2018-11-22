@@ -8,5 +8,7 @@ Description: Discovery of novel exons from RNA-seq data based on the SJ.out.tab
     file from STAR. The mapped splice-junctions are compared with the genome
     annotation to discover novel exons.
 License: What license is it under?
+URL: https://github.com/khembach/exondiscovery
+BugReports: https://github.com/khembach/exondiscovery/issues
 Encoding: UTF-8
 LazyData: true
