@@ -1,0 +1,12 @@
+Package: exondiscovery
+Type: Package
+Title: Novel Exon Discovery And Annotation
+Version: 0.1.0
+Author: Katharina Hembach
+Maintainer: Katharina Hembach <katharina.hembach@uzh.ch>
+Description: Discovery of novel exons from RNA-seq data based on the SJ.out.tab 
+    file from STAR. The mapped splice-junctions are compared with the genome
+    annotation to discover novel exons.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
