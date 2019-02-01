@@ -4,16 +4,22 @@
 \alias{sj_touching_exon}
 \title{Determine which side of the splice junction touches an exon}
 \usage{
-sj_touching_exon(sj, exons)
+sj_touching_exon(seqnames, start, end, strand, exons)
 }
 \arguments{
-\item{sj}{A splice junction as a single GRange}
+\item{seqnames}{String splice junction seqname}
+
+\item{start}{integer start of splice junction}
+
+\item{end}{integer end of splice junction}
+
+\item{strand}{factor strand of splice junction ("-" or "+")}
 
 \item{exons}{Exon annotation as GRanges}
 }
 \value{
 A string that defines which side of the splice junction is touching
-  an exon: "both", "start", "end", NA if the splic jucntion does not touch an
+  an exon: "both", "start", "end", NA if the splice junction does not touch an
   exon or if the exons come from different genes.
 }
 \description{

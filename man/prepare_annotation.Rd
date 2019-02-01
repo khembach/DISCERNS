@@ -10,7 +10,7 @@ prepare_annotation(GTF)
 \item{GTF}{Path to GTF file}
 }
 \value{
-List with exon and intron annotations as GRanges
+List with exon and intron annotations as GRanges and the TxDB object.
 }
 \description{
 Prepare exon and intron annotation from GTF file

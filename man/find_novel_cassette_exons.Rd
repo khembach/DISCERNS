@@ -5,22 +5,25 @@
 \title{Predict novel cassette exons from SJ.out.tab file from STAR}
 \usage{
 find_novel_cassette_exons(sj_filename, annotation, min_unique = 1,
-  gzipped = FALSE, verbose = TRUE)
+  gzipped = FALSE, verbose = TRUE, bam)
 }
 \arguments{
-\item{sj_filename}{Input file. Path to SJ.out.tab file}
+\item{sj_filename}{Path to SJ.out.tab file.}
 
-\item{annotation}{List with exon and intron annotation as Granges}
+\item{annotation}{List with exon and intron annotation as GRanges. Created
+with prepare_annotation().}
 
 \item{min_unique}{Minimal number of reads required to map over a splice
-junction}
+junction.}
 
 \item{gzipped}{A logical scalar. Is the input file gzipped? Default FALSE.}
 
-\item{verbose}{Print messages about the progress}
+\item{verbose}{Print messages about the progress.}
+
+\item{bam}{Path to BAM file.}
 }
 \value{
-Data frame with novel exons
+Data frame with novel exons.
 }
 \description{
 Predict novel cassette exons from SJ.out.tab file from STAR

@@ -1,23 +1,26 @@
 #' Predict novel cassette exons from SJ.out.tab file from STAR
 #'
-#' @param sj_filename Input file. Path to SJ.out.tab file
-#' @param annotation List with exon and intron annotation as Granges
+#' @param sj_filename Path to SJ.out.tab file.
+#' @param annotation List with exon and intron annotation as GRanges. Created
+#'   with prepare_annotation().
 #' @param min_unique Minimal number of reads required to map over a splice
-#'  junction
-#' @param verbose Print messages about the progress
+#'   junction.
+#' @param verbose Print messages about the progress.
 #' @param gzipped A logical scalar. Is the input file gzipped? Default FALSE.
+#' @param bam Path to BAM file.
 #'
-#' @return Data frame with novel exons
+#' @return Data frame with novel exons.
 #'
 #' @importFrom data.table fread
 #' @import GenomicRanges
 #' @import IRanges
 #' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom GenomicFeatures genes exonsBy
 #'
 #' @export
 #'
 find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
-                                      gzipped=FALSE, verbose=TRUE) {
+                                      gzipped=FALSE, verbose=TRUE, bam) {
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
 
@@ -33,6 +36,10 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
   #strand: (0: undefined, 1: +, 2: -)
   sj$strand <- c("*","+","-")[sj$strand+1]
 
+  ### TODO: create functions for the different prediction "types"
+  ## 1) casette exons 2) predictions from single novel SJ
+  ## 3) predictions from reads or read pairs with 2 SJ
+  ## let the user decide which ones to run
 
   ## ============= junction prefiltering ============= #
 
@@ -51,11 +58,6 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
   ## same strand
   sj_unann <- sj_unann[(start(sj_unann)-1) %in% end(exons) |
                          (end(sj_unann)+1) %in% start(exons),]
-
-  # touching <- sapply(sj_unann, function(x) sj_touching_exon(x, exons=exons))
-  # mcols(sj_unann)$touching <- touching
-  # sj_unann <- sj_unann[!is.na(touching)] ## remove the ambiguous sj that touch multiple genes
-
 
   ## ======== Cassette exon prediction ======== #
 
@@ -115,10 +117,38 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
                               stringsAsFactors=FALSE )
   }
 
+  ## ==== Find novel exon coordinates from single novel splice junctions ======
+
+  if (verbose)
+    message("Step 4: Find exon coordinates of exons adjacent to novel splice
+            junctions")
+  reads <- import_novel_sj_reads(bam, sj_unann)
+
+  ebyTr <- exonsBy(annotation[["txdb"]], by = "tx", use.names = TRUE)
+  gtxdb <- genes(annotation[["txdb"]])
+
+  ## convert GRanges to data.frame otherwise we cannot use apply functions
+  sj_unann <- data.frame(sj_unann, stringsAsFactors = FALSE)
+
+  ## annotate which end of a splice junction is touching an annotated exon
+  touching <- mapply(sj_touching_exon, sj_unann$seqnames, sj_unann$start,
+                     sj_unann$end, sj_unann$strand,
+                     MoreArgs = list(exons = exons))
+  sj_unann$touching <- touching
+  ## remove the ambiguous sj that touch different genes on both ends
+  sj_unann <- sj_unann[!is.na(touching),]
+
+  res <- identify_exon_from_sj(sj_unann, reads = reads,
+                                txdb = annotation[["txdb"]],
+                                gtxdb = gtxdb, ebyTr = ebyTr)
+
+  if (nrow(res) > 0) {
+    novel_exons <- rbind( novel_exons, res)
+  }
+
 
   ## ============ Compute minimal junction read coverage ===========
-
-  if(verbose) message("Step 4: Computing minimal junction read coverage")
+  if(verbose) message("Step 5: Computing minimal junction read coverage")
 
   ##  Add columns with the number of reads supporting the left and right splice
   ##  junction and the minimum of both
@@ -143,3 +173,5 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
 
   novel_exons
 }
+
+

@@ -21,4 +21,6 @@ Imports:
     dplyr,
     GenomicRanges,
     IRanges,
-    S4Vectors
+    S4Vectors,
+    GenomicAlignments,
+    Rsamtools

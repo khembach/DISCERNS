@@ -2,7 +2,7 @@
 #'
 #' @param GTF Path to GTF file
 #'
-#' @return List with exon and intron annotations as GRanges
+#' @return List with exon and intron annotations as GRanges and the TxDB object.
 #'
 #' @importFrom rtracklayer import
 #' @importFrom GenomicFeatures makeTxDbFromGRanges intronsByTranscript
@@ -18,5 +18,5 @@ prepare_annotation <- function(GTF) {
   inbytx <- intronsByTranscript(txdb, use.names=TRUE)
   introns <- unique(unlist(inbytx))
 
-  list(exons=exons, introns=introns)
+  list(exons=exons, introns=introns, txdb = txdb)
 }
