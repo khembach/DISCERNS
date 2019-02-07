@@ -24,12 +24,13 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
 
-  if(verbose) message("Step 1: Reading splice junctions from file")
+  if (verbose) message("Step 1: Reading splice junctions from file")
 
-  if(gzipped)
+  if (gzipped) {
     sj <- fread(paste0("zcat ", sj_filename))
-  else
+  } else {
     sj <- fread(sj_filename)
+  }
   colnames(sj) <- c("seqnames", "start", "end", "strand", "motif", "annotated",
                     "unique", "mutimapping", "maxoverhang")
 
@@ -107,14 +108,14 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
     novel_exons <-   data.frame(seqnames = as.vector(seqnames(starts)), lend = start(starts)-1L,
                                 start = end(starts)+1L, end = start(ends)-1L,
                                 rstart = end(ends)+1L, strand = as.vector(strand(starts)),
-                                stringsAsFactors=FALSE )
+                                stringsAsFactors=TRUE )
     sj_unann <- subsetByOverlaps(sj_unann, c(starts, ends),
                                  type="equal", invert=TRUE)
   } else{
     novel_exons <- data.frame(seqnames= character(), lend = integer(),
                               start = integer(), end = integer(),
                               rstart = integer(), strand = character(),
-                              stringsAsFactors=FALSE )
+                              stringsAsFactors=TRUE )
   }
 
   ## ==== Find novel exon coordinates from single novel splice junctions ======
@@ -128,7 +129,7 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
   gtxdb <- genes(annotation[["txdb"]])
 
   ## convert GRanges to data.frame otherwise we cannot use apply functions
-  sj_unann <- data.frame(sj_unann, stringsAsFactors = FALSE)
+  sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
 
   ## annotate which end of a splice junction is touching an annotated exon
   touching <- mapply(sj_touching_exon, sj_unann$seqnames, sj_unann$start,
@@ -146,9 +147,22 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
     novel_exons <- rbind( novel_exons, res)
   }
 
+  ## ============ Predict novel exons from reads with 2 junctions +++===========
+  if(verbose) message("Step 5: Predict novel exons from reads with 2 junctions")
+
+  junc_reads <- filter_junction_reads(bam)
+  read_pred <- predict_jr_exon(junc_reads, annotation)
+
+  ## make sure the factors have the same levels
+  combined <- union(levels(read_pred$strand), levels(novel_exons$strand))
+  ## predictions from both the reads and the SJ.out.tab
+  novel_exons <- full_join(mutate(read_pred,
+                                  strand = factor(strand, levels = combined)),
+                           mutate(novel_exons,
+                                  ßstrand = factor(strand, levels = combined)))
 
   ## ============ Compute minimal junction read coverage ===========
-  if(verbose) message("Step 5: Computing minimal junction read coverage")
+  if(verbose) message("Step 6: Computing minimal junction read coverage")
 
   ##  Add columns with the number of reads supporting the left and right splice
   ##  junction and the minimum of both
