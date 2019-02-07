@@ -24,4 +24,6 @@ Imports:
     S4Vectors,
     GenomicAlignments,
     Rsamtools,
-    stringr
+    stringr,
+    magrittr,
+    rlang

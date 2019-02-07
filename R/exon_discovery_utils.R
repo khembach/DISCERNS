@@ -95,7 +95,7 @@ transcript_range <- function(gr){
 #' @importFrom GenomicFeatures transcripts
 #' @export
 #'
-#' @section Details
+#' @section Details:
 #'   The function first overlaps the SJ with all genes and then with all
 #'   transcripts of the overlapping gene.
 #'

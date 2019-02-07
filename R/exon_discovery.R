@@ -16,6 +16,7 @@
 #' @import IRanges
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom GenomicFeatures genes exonsBy
+#' @importFrom dplyr full_join mutate
 #'
 #' @export
 #'
@@ -159,7 +160,7 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
   novel_exons <- full_join(mutate(read_pred,
                                   strand = factor(strand, levels = combined)),
                            mutate(novel_exons,
-                                  ßstrand = factor(strand, levels = combined)))
+                                  strand = factor(strand, levels = combined)))
 
   ## ============ Compute minimal junction read coverage ===========
   if(verbose) message("Step 6: Computing minimal junction read coverage")

@@ -24,3 +24,9 @@ This function computes if a splice junction (SJ) splices to a terminal exons.
 If the exon at the start of the SJ is terminal, the function returns "start",
 "end" if it is the exon at the end and "NA" if none of the exons are terminal
 }
+\section{Details}{
+
+  The function first overlaps the SJ with all genes and then with all
+  transcripts of the overlapping gene.
+}
+

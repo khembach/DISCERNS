@@ -7,12 +7,13 @@
 #'
 #' @return GAlignments object with junction reads
 #'
-#' @importFrom data.table fread
+#' @importFrom data.table fread ":="
 #' @importFrom Rsamtools bamFlagAsBitMatrix
+#' @importFrom rlang .data
 #' @export
 #'
 filter_junction_reads <- function(bam){
-  junc_reads <- fread(cmd = paste0("samtools view  -f 2 ", BAM,
+  junc_reads <- fread(cmd = paste0("samtools view  -f 2 ", bam,
                            " | awk '{if ($6 ~ /N/) print $1, $2, $3, $4, $6}'"))
   names(junc_reads) <- c("qname", "flag", "seqnames", "pos", "cigar")
 
@@ -22,7 +23,7 @@ filter_junction_reads <- function(bam){
   # of the first reads
   junc_reads <- cbind(junc_reads,
                       bamFlagAsBitMatrix(junc_reads$flag,
-                                         bitnames=c("isMinusStrand",
+                                         bitnames = c("isMinusStrand",
                                                     "isFirstMateRead")) )
 
   ## TODO: make sure that the strand of both reads is correct --> use a
@@ -32,9 +33,10 @@ filter_junction_reads <- function(bam){
   ## isMinusStrand==0 & isFirstMateRead==1 --> "-"
   ## isMinusStrand==1 & isFirstMateRead==0 --> "-"
   ## isMinusStrand==1 & isFirstMateRead==1 --> "+"
-  junc_reads[, strand := ifelse(isMinusStrand + isFirstMateRead == 0, "+",
-                                ifelse(isMinusStrand + isFirstMateRead == 1, "-",
-                                       "+"))]
+  junc_reads[, strand := ifelse(.data$isMinusStrand + .data$isFirstMateRead
+                                == 0, "+",
+                                ifelse(.data$isMinusStrand + .data$isFirstMateRead == 1,
+                                       "-", "+"))]
   junc_reads
 }
 
@@ -50,8 +52,10 @@ filter_junction_reads <- function(bam){
 #' defined by the two splice junctions is returned if it is contained within the
 #' boundaries of any annotated gene. This prevents the prediction of false
 #' positive exons from wrongly mapped reads.
+#'
+#' @param annotation List with exon and intron annotation as GRanges. Created
+#'   with prepare_annotation().
 #' @param junc_reads GAlignments object with junction read
-#' @param txdb TxDb object with gene annotations
 #'
 #' @return data.frame with the coordinates of the predicted novel exon. It has 6
 #'   columns: seqnames, lend, start, end, rstart and strand
@@ -59,7 +63,10 @@ filter_junction_reads <- function(bam){
 #' @importFrom stringr str_count
 #' @importFrom GenomicAlignments cigarRangesAlongReferenceSpace
 #' @importFrom GenomicFeatures intronsByTranscript
-#' @importFrom dplyr group_by
+#' @importFrom dplyr group_by summarise filter pull nth select rename ungroup n
+#' @importFrom magrittr %>%
+#' @importFrom data.table as.data.table
+#' @importFrom rlang .data
 #'
 #' @export
 #'
@@ -97,16 +104,17 @@ predict_jr_exon <- function(junc_reads, annotation){
   olap <- findOverlaps(cigar_junc_gr, intr_gtf, type ="equal")
 
   ## test is TRUE if there is a transcript that contains both junctions
-  tmp <- data.frame(read = names(cigar_junc_gr)[queryHits(olap)] ,
+  tmp <- data.frame(read = names(cigar_junc_gr)[queryHits(olap)],
                     tr = names(intr_gtf[subjectHits(olap)])) %>%
-    group_by(read,tr) %>%
-    count(.) %>%
-    group_by(read) %>%
-    summarise(test = any(n == 2))
+    group_by(.data$read, .data$tr) %>%
+    summarise(n = n()) %>%
+    ungroup() %>%
+    group_by(.data$read) %>%
+    summarise(test = any(.data$n == 2))
 
   read_id <- tmp %>%
-    filter(test==T) %>%
-    pull(read) ## all reads that are already annotated
+    filter(.data$test == TRUE) %>%
+    pull(.data$read) ## all reads that are already annotated
 
   ## all reads with junctions that are not annotated in a transcripts
   cigar_junc_gr_pred <- cigar_junc_gr[!names(cigar_junc_gr) %in% read_id, ]
@@ -116,16 +124,16 @@ predict_jr_exon <- function(junc_reads, annotation){
   novel_reads <- novel_reads[order(novel_reads$start), ]
   read_pred <- novel_reads %>%
     group_by(names) %>%
-    dplyr::summarise(lend = nth(start-1, 1),
-                     start1 = nth(end+1, 1),
-                     end1 = nth(start-1, 2),
-                     rstart = nth(end+1, 2),
+    dplyr::summarise(lend = nth(start - 1, 1),
+                     start1 = nth(end + 1, 1),
+                     end1 = nth(start - 1, 2),
+                     rstart = nth(end + 1, 2),
                      seqnames = unique(seqnames), strand = unique(strand))
 
   ## TODO: only keep predictions with >- x supporting reads
   read_pred <- read_pred %>%
     select(-names) %>%
-    rename(start = start1, end = end1) %>%
+    rename(start = .data$start1, end = .data$end1) %>%
     unique()
 
   ## keep all predictions where the exon itself is not annotated

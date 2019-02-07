@@ -9,7 +9,8 @@ predict_jr_exon(junc_reads, annotation)
 \arguments{
 \item{junc_reads}{GAlignments object with junction read}
 
-\item{txdb}{TxDb object with gene annotations}
+\item{annotation}{List with exon and intron annotation as GRanges. Created
+with prepare_annotation().}
 }
 \value{
 data.frame with the coordinates of the predicted novel exon. It has 6
