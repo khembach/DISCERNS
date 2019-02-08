@@ -11,7 +11,7 @@
 #' @importFrom Rsamtools bamFlagAsBitMatrix
 #' @export
 #'
-filter_junction_reads <- function(bam){
+filter_junction_reads <- function(bam) {
   junc_reads <- fread(cmd = paste0("samtools view  -f 2 ", bam,
                            " | awk '{if ($6 ~ /N/) print $1, $2, $3, $4, $6}'"))
   names(junc_reads) <- c("qname", "flag", "seqnames", "pos", "cigar")
@@ -70,7 +70,7 @@ filter_junction_reads <- function(bam){
 #'
 #' @export
 #'
-predict_jr_exon <- function(junc_reads, annotation){
+predict_jr_exon <- function(junc_reads, annotation) {
   ##  keep all reads with 2 junctions and also look for novel junction combinations
   ## filter all reads with 2 "N" in cigar
   two_jr<- junc_reads[str_count(junc_reads$cigar, "N") == 2, ]
@@ -98,7 +98,7 @@ predict_jr_exon <- function(junc_reads, annotation){
   ##only keep the unique junction-transcript_id combinations
 
   ## we compare the read junctions to annotated transcript introns
-  olap <- findOverlaps(cigar_junc_gr, intr_gtf, type ="equal")
+  olap <- findOverlaps(cigar_junc_gr, intr_gtf, type = "equal")
 
   ## test is TRUE if there is a transcript that contains both junctions
   tmp <- data.frame(read = names(cigar_junc_gr)[queryHits(olap)],
@@ -146,8 +146,6 @@ predict_jr_exon <- function(junc_reads, annotation){
 }
 
 
-
-
 #' Predict novel exons from read pairs two splice junctions
 #'
 #' Novel exons are predicted from paired-end reads where each read spans one
@@ -183,7 +181,7 @@ predict_jr_exon <- function(junc_reads, annotation){
 #'
 #' @export
 #'
-predict_jrp_exon <- function(junc_reads, annotation){
+predict_jrp_exon <- function(junc_reads, annotation) {
   junc_rp <- junc_reads[str_count(junc_reads$cigar, "N") == 1, ]
   junc_rp <- junc_rp[duplicated(junc_rp$qname) | duplicated(junc_rp$qname,
                                                             fromLast = TRUE), ]
@@ -248,7 +246,7 @@ predict_jrp_exon <- function(junc_reads, annotation){
   novel_reads <- as.data.table(cigar_jp_gr_pred)
 
   ## predict the novel exons based on the novel junctions
-  novel_reads <- novel_reads[order(novel_reads$start), ] ## sort according to junction start
+  novel_reads <- novel_reads[order(novel_reads$start), ]
   read_pairs_pred <- novel_reads %>% group_by(names) %>%
     summarise(lend = nth(start - 1, 1), start1 = nth(end + 1, 1),
               end1 = nth(start - 1, 2), rstart = nth(end + 1, 2),
@@ -261,7 +259,8 @@ predict_jrp_exon <- function(junc_reads, annotation){
   ## Keep all predictions, where the exon itself is not jet annotated
   read_pairs_pred <- as.data.frame(subsetByOverlaps(GRanges(read_pairs_pred),
                                                     annotation[["exons"]],
-                                                    type="equal", invert = TRUE))
+                                                    type = "equal",
+                                                    invert = TRUE))
   read_pairs_pred <- read_pairs_pred %>% select(-width)
   read_pairs_pred$seqnames <- read_pairs_pred$seqnames
   read_pairs_pred

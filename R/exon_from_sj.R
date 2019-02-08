@@ -8,9 +8,9 @@
 #'   from max-1 to 0 (most downstream part in the read)
 #' @export
 #'
-downstream_count <- function(x){
+downstream_count <- function(x) {
   tmp <- data.frame(x)
-  tmp$nr <- nrow(tmp)-(1:nrow(tmp))
+  tmp$nr <- nrow(tmp) - (1:nrow(tmp))
   tmp
 }
 
@@ -33,12 +33,12 @@ downstream_count <- function(x){
 #' @return data.frame with the coordinates of the predicted exon(s)
 #' @export
 #'
-identify_exon_end <- function(r, j_start, j_end, j_seqnames, j_strand){
-  r_ranges <- dplyr::bind_rows( lapply(r, downstream_count) )
+identify_exon_end <- function(r, j_start, j_end, j_seqnames, j_strand) {
+  r_ranges <- dplyr::bind_rows(lapply(r, downstream_count))
 
-  sj_hit <- which(r_ranges$start == j_end + 1 )
+  sj_hit <- which(r_ranges$start == j_end + 1)
   sj_hit_downstream <- sj_hit[sj_hit %in% which(r_ranges$nr > 0)] + 1
-  if(length(sj_hit_downstream) > 0){
+  if (length(sj_hit_downstream) > 0) {
     ## If there are reads with a second junction, we take the coordinates from
     ## the mapped part.
     unique(data.frame(seqnames = j_seqnames,
@@ -67,7 +67,7 @@ identify_exon_end <- function(r, j_start, j_end, j_seqnames, j_strand){
 #' @return data.frame with the range of each mapped part and the nr of each part
 #'   from  1 to max (from 5' to 3')
 #' @export
-upstream_count <- function(x){
+upstream_count <- function(x) {
   tmp <- data.frame(x)
   tmp$nr <- 1:nrow(tmp)
   tmp
@@ -92,13 +92,13 @@ upstream_count <- function(x){
 #' @return data.frame with the coordinates of the predicted exon(s)
 #' @export
 #'
-identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand){
-  r_ranges <- dplyr::bind_rows( lapply(r, upstream_count))
+identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
+  r_ranges <- dplyr::bind_rows(lapply(r, upstream_count))
 
-  sj_hit <- which(r_ranges$end == j_start - 1 )
+  sj_hit <- which(r_ranges$end == j_start - 1)
   sj_hit_upstream <- sj_hit[r_ranges$nr[sj_hit] > 1]
 
-  if(length(sj_hit_upstream) > 0){
+  if (length(sj_hit_upstream) > 0) {
     ## if there are reads with an junction upstream of the SJ of interest
     unique(data.frame(seqnames = j_seqnames,
                       lend = r_ranges$end[sj_hit_upstream - 1],
@@ -141,7 +141,7 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand){
 #' @export
 #'
 filter_terminal_sj <- function(start_coords, end_coords, j,
-                               txdb = txdb, gtxdb = gtxdb, ebyTr=ebyTr) {
+                               txdb = txdb, gtxdb = gtxdb, ebyTr = ebyTr) {
   s_na <- is.na(start_coords$lend)
   e_na <- is.na(end_coords$rstart)
   if (any(!s_na)) {
@@ -155,7 +155,7 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
       end_coords[!is.na(e_na), ]
   } else { ## terminal exon?
     terminal <- which_exon_terminal(GRanges(j), txdb = txdb, gtxdb = gtxdb,
-                                    ebyTr=ebyTr)
+                                    ebyTr = ebyTr)
     if (is.na(terminal)) {
       NULL
     } else if (terminal == "start") {
@@ -217,14 +217,13 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
 #'   seqnames, lend, start, end, rstart and strand
 #' @export
 #'
-get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr){
+get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
   stopifnot(touching %in% c("start", "end", "both"))
 
   rs <- lapply(junctions$id, function(x) reads[ mcols(reads)$which_label == x ])
   r_mapped <- lapply(rs, function(x) grglist(x, order.as.in.query = FALSE,
-                                             use.mcols = TRUE ))
-
-  if (touching == "both"){
+                                             use.mcols = TRUE))
+  if (touching == "both") {
     ## Case 3: The novel SJ touches annotated exon on both end. We try to
     ## identify a novel exon on both the start and the end of the novel SJ
     full_coord_end <- mapply(identify_exon_end, r_mapped, junctions$start,
@@ -286,12 +285,11 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr){
 #' @importFrom dplyr bind_rows
 #'
 #' @export
-identify_exon_from_sj <- function(df, reads, txdb, gtxdb, ebyTr){
+identify_exon_from_sj <- function(df, reads, txdb, gtxdb, ebyTr) {
   df$id <-  paste0(df$seqnames, ":", df$start, "-", df$end)
 
   ## split the junctions by type: "start", "end" or "both"
   js <- split(df, factor(df$touching))
-
   res <-  lapply(names(js), function(x) get_second_sj(js[[x]], reads, x, txdb,
                                                       gtxdb, ebyTr))
   dplyr::bind_rows(res)

@@ -9,15 +9,15 @@
 #' @param strand factor strand of splice junction ("-" or "+")
 #'
 #' @return A string that defines which side of the splice junction is touching
-#'   an exon: "both", "start", "end", NA if the splice junction does not touch an
-#'   exon or if the exons come from different genes.
+#'   an exon: "both", "start", "end", NA if the splice junction does not touch
+#'   an exon or if the exons come from different genes.
 #' @export
 #'
-sj_touching_exon <- function(seqnames, start, end, strand, exons){
+sj_touching_exon <- function(seqnames, start, end, strand, exons) {
   ex <- exons[seqnames(exons) == seqnames]
 
   ex <- exons
-  s <- which(start - 1 == end(ex) )
+  s <- which(start - 1 == end(ex))
   s <- ex[s, ]   ## all touching exons at start of sj
   s <- s[strand(s) == strand, ] ## all touching exons with same strand
 
@@ -25,19 +25,17 @@ sj_touching_exon <- function(seqnames, start, end, strand, exons){
   e <- ex[e]   ## all touching exons at end of sj
   e <- e[strand(e) == strand, ]
 
-  if( length(s) > 0 ){
-    if(length(e) > 0){
+  if (length(s) > 0){
+    if (length(e) > 0){
       ## pair of touching exons from the same gene
-      if(any( mcols(s)$gene_id %in% mcols(e)$gene_id )) {
+      if (any(mcols(s)$gene_id %in% mcols(e)$gene_id)) {
         "both"
       } else NA
     } else "start"
-  } else if(length(e) >0){
+  } else if (length(e) >0){
     "end"
   } else NA
 }
-
-
 
 
 #' Match novel splice junctions within an intron
@@ -50,13 +48,14 @@ sj_touching_exon <- function(seqnames, start, end, strand, exons){
 #'   strand.
 #' @export
 #'
-match_sj_in_intron <- function(s, e){
-  if (all( length(s) ==1, length(e)==1,
-           isDisjoint(c(s, e), ignore.strand=FALSE))){
-    return(c(as.vector(seqnames(s)), start(s)-1, end(s)+1,
-               start(e)-1, end(e)+1, as.vector(strand(s)) ) )
+match_sj_in_intron <- function(s, e) {
+  if (all( length(s) == 1, length(e) == 1,
+           isDisjoint(c(s, e), ignore.strand=FALSE))) {
+    return(c(as.vector(seqnames(s)), start(s) - 1, end(s) + 1,
+             start(e) - 1, end(e) + 1, as.vector(strand(s))))
   } ## TODO: more than two novel splice junctions per intron
 }
+
 
 #' GRanges of a transcript
 #'
@@ -68,14 +67,14 @@ match_sj_in_intron <- function(s, e){
 #' @return GRange with start and end of the transcript
 #' @export
 #'
-transcript_range <- function(gr){
+transcript_range <- function(gr) {
   ## TODO: This is only needed for the simulated data, because the transcript
   ## annotation still contains the removed exons in the GTF file. For real data,
   ## we can simply take to coordinates of the entry with type="transcript".
 
   GRanges(seqnames = seqnames(gr)[1],
           ranges = IRanges(min(start(gr)), max(end(gr))),
-          strand= strand(gr)[1])
+          strand = strand(gr)[1])
 }
 
 
@@ -99,9 +98,9 @@ transcript_range <- function(gr){
 #'   The function first overlaps the SJ with all genes and then with all
 #'   transcripts of the overlapping gene.
 #'
-which_exon_terminal <- function(j, txdb = txdb, gtxdb = gtxdb, ebyTr = ebyTr){
-  ### TODO: maybe we have to include the position +-1 of the sj, in case of terminal
-  ### sj that is outside of the annotated gene boundary ??
+which_exon_terminal <- function(j, txdb = txdb, gtxdb = gtxdb, ebyTr = ebyTr) {
+  ### TODO: maybe we have to include the position +-1 of the sj, in case of
+  ### terminal sj that is outside of the annotated gene boundary ?
 
   ## all genes that overlap with the SJ
   genes <- mcols(subsetByOverlaps(gtxdb, j))$gene_id
@@ -117,8 +116,8 @@ which_exon_terminal <- function(j, txdb = txdb, gtxdb = gtxdb, ebyTr = ebyTr){
   #the start and end of the first and last exon, but it does not work for the
   #simulated data, because the "transcript" entry in the gtf file still contains
   #the removed exons!
-
-  #tr <- subsetByOverlaps(transcripts(txdb, filter = list(gene_id = genes)), j, invert = TRUE)
+  #tr <- subsetByOverlaps(transcripts(txdb, filter = list(gene_id = genes)),
+  #                                   j, invert = TRUE)
 
   e <- unlist(ebyTr[tr]) ## all exons from the non-overlapping transcripts
   if (length(e) == 0) {  # Sj overlaps with all transcripts of the gene.

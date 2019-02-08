@@ -18,5 +18,5 @@ prepare_annotation <- function(GTF) {
   inbytx <- intronsByTranscript(txdb, use.names=TRUE)
   introns <- unique(unlist(inbytx))
 
-  list(exons=exons, introns=introns, txdb = txdb)
+  list(exons = exons, introns = introns, txdb = txdb)
 }
