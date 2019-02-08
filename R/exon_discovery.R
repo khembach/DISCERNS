@@ -162,8 +162,18 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique=1,
                            mutate(novel_exons,
                                   strand = factor(strand, levels = combined)))
 
+  ## ======= Predict novel exons from reads pairs with each one junction =======
+  if(verbose) message("Step 6: Predict novel exons from reads pairs with each 1
+                      junction")
+  read_pair_pred <- predict_jrp_exon(junc_reads, annotation)
+  combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
+  novel_exons <- full_join(mutate(read_pair_pred,
+                                  strand = factor(strand, levels = combined)),
+                           mutate(novel_exons,
+                                  strand = factor(strand, levels = combined)))
+
   ## ============ Compute minimal junction read coverage ===========
-  if(verbose) message("Step 6: Computing minimal junction read coverage")
+  if(verbose) message("Step 7: Computing minimal junction read coverage")
 
   ##  Add columns with the number of reads supporting the left and right splice
   ##  junction and the minimum of both
