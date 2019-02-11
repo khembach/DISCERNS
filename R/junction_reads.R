@@ -1,7 +1,7 @@
 #' Filter reads with splice junctions from BAM file
 #'
-#' The function Filters all reads with "N" in the CIGAR string and that are
-#' properly paired (-f 2) from a BAM file.
+#' The function takes a BAM file as input and returns all reads with "N" in the
+#' CIGAR string and that are properly paired (-f 2).
 #'
 #' @param bam The path to the BAM file.
 #'
@@ -16,10 +16,10 @@ filter_junction_reads <- function(bam) {
                            " | awk '{if ($6 ~ /N/) print $1, $2, $3, $4, $6}'"))
   names(junc_reads) <- c("qname", "flag", "seqnames", "pos", "cigar")
 
-  ## We infer the read strand from the flag: our data comes from Illumina HiSeq
-  # 2000 (stranded TruSeq libary preparation with dUTPs ) Thus, the the last
-  # read in pair determines the strand of the junction --> reverse the strand
-  # of the first reads
+  #We infer the read strand from the flag: our data comes from Illumina HiSeq
+  #2000 (stranded TruSeq libary preparation with dUTPs ). Thus, the last read in
+  #a pair determines the strand of the junction --> we reverse the strand of the
+  #first reads
   junc_reads <- cbind(junc_reads,
                       bamFlagAsBitMatrix(junc_reads$flag,
                                          bitnames = c("isMinusStrand",
@@ -86,7 +86,7 @@ predict_jr_exon <- function(junc_reads, annotation) {
                            cigar_junc_gr,
                            two_jr$strand[as.integer(names(cigar_junc_gr))])
 
-  ## we join the read junctions with the annotated introns start is the first
+  ## we join the read junctions with the annotated introns: start is the first
   ## nucleotide in the intron and end the last nucleotide (excluding exons)
   inbytx <- intronsByTranscript(annotation[["txdb"]], use.names = TRUE)
   intr_gtf <- unlist(inbytx)
@@ -146,7 +146,7 @@ predict_jr_exon <- function(junc_reads, annotation) {
 }
 
 
-#' Predict novel exons from read pairs two splice junctions
+#' Predict novel exons from read pairs with two splice junctions
 #'
 #' Novel exons are predicted from paired-end reads where each read spans one
 #' splice junction. First, the read pairs are filtered and the distance between

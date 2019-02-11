@@ -13,6 +13,6 @@ filter_junction_reads(bam)
 GAlignments object with junction reads
 }
 \description{
-The function Filters all reads with "N" in the CIGAR string and that are
-properly paired (-f 2) from a BAM file.
+The function takes a BAM file as input and returns all reads with "N" in the
+CIGAR string and that are properly paired (-f 2).
 }

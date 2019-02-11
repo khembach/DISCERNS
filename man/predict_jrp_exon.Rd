@@ -2,7 +2,7 @@
 % Please edit documentation in R/junction_reads.R
 \name{predict_jrp_exon}
 \alias{predict_jrp_exon}
-\title{Predict novel exons from read pairs two splice junctions}
+\title{Predict novel exons from read pairs with two splice junctions}
 \usage{
 predict_jrp_exon(junc_reads, annotation)
 }
