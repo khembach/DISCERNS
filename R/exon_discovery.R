@@ -64,62 +64,10 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique = 1,
   ## ======== Cassette exon prediction ======== #
 
   if (verbose) message("Step 3: Predicting cassette exons")
-  ## Look for two consecutive novel splice junctions that are located within an
-  ## annotated junction, but have the same start or end --> the 2 novel SJ could
-  ## replace the annotated intron
-  ## XXX--------XXX   annotation
-  ## XXX---X----XXX   novel found exon
 
-  ## First we get all SJ that are located within annotated junctions Then, we
-  ## select only the junctions that have the same start or end as the intron
-  ## Last, we need to find all introns that have both a novel start and end SJ.
-  ## The novel SJs have to be consecutive.
-
-  within_ind <- unique(queryHits(findOverlaps(sj_unann, introns,
-                                              type = "within")))
-  within <- sj_unann[within_ind, ]
-
-  start_hit <- findOverlaps(within, introns, type = "start")
-  end_hit <- findOverlaps(within, introns, type = "end")
-  ## filter out introns with only start/end
-  start_hit <- start_hit[subjectHits(start_hit) %in% subjectHits(end_hit), ]
-  end_hit <- end_hit[subjectHits(end_hit) %in% subjectHits(start_hit), ]
-
-  ## filter out introns with more than one start or end junction
-  start_intr_id <- table(subjectHits(start_hit))
-  start_intr_id <- names(start_intr_id[start_intr_id == 1])
-  end_intr_id <- table(subjectHits(end_hit))
-  end_intr_id <- names(end_intr_id[end_intr_id == 1])
-
-  intr_id<- as.integer(start_intr_id[start_intr_id %in% end_intr_id])
-
-  start_hit <- start_hit[subjectHits(start_hit) %in% intr_id]
-  starts <- within[queryHits(start_hit)[order(subjectHits(start_hit))]]
-
-  end_hit <-  end_hit[subjectHits(end_hit) %in% intr_id]
-  ends <- within[queryHits(end_hit)[order(subjectHits(end_hit))]]
-
-  ## filter out overlapping SJs or SJs on different strands
-  paired_junc_id <- which(end(starts) < start(ends) &
-                            strand(starts) == strand(ends))
-  starts <- starts[paired_junc_id]
-  ends <- ends[paired_junc_id]
-
-  if (length(starts) > 0 & length(ends) > 0) {
-    novel_exons <- data.frame(seqnames = as.vector(seqnames(starts)),
-                              lend = start(starts) - 1L,
-                              start = end(starts) + 1L, end = start(ends) - 1L,
-                              rstart = end(ends) + 1L,
-                              strand = as.vector(strand(starts)),
-                              stringsAsFactors = TRUE )
-    sj_unann <- subsetByOverlaps(sj_unann, c(starts, ends),
-                                 type="equal", invert = TRUE)
-  } else {
-    novel_exons <- data.frame(seqnames = character(), lend = integer(),
-                              start = integer(), end = integer(),
-                              rstart = integer(), strand = character(),
-                              stringsAsFactors = TRUE)
-  }
+  ce <- predict_cassette_exon(sj_unann, introns)
+  novel_exons <- ce[["ne"]]
+  sj_unann <- ce[["sj"]]
 
   ## ==== Find novel exon coordinates from single novel splice junctions ======
   if (verbose)
@@ -198,7 +146,6 @@ find_novel_cassette_exons <- function(sj_filename, annotation, min_unique = 1,
   ## take the minimum read coverage of both junctions
   novel_exons$min_reads <- pmin(novel_exons$unique_left,
                                 novel_exons$unique_right, na.rm = TRUE)
-
   novel_exons
 }
 
