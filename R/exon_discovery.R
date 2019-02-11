@@ -20,7 +20,7 @@
 #'
 #' @export
 #'
-find_novel_cassette_exons <- function(sj_filename, annotation, min_unique = 1,
+find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                                       gzipped = FALSE, verbose = TRUE, bam) {
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]

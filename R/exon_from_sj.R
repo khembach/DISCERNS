@@ -211,7 +211,6 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
 #'   return object.
 #' @param gtxdb GRanges: All genes from the TxDB object.
 #' @param ebyTr GRanges: All exons from the TxDB object per transcript.
-
 #'
 #' @return data.frame with the coordinates of the novel exon. It has 6 columns:
 #'   seqnames, lend, start, end, rstart and strand
@@ -220,11 +219,11 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
 get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
   stopifnot(touching %in% c("start", "end", "both"))
 
-  rs <- lapply(junctions$id, function(x) reads[ mcols(reads)$which_label == x ])
+  rs <- lapply(junctions$id, function(x) reads[mcols(reads)$which_label == x])
   r_mapped <- lapply(rs, function(x) grglist(x, order.as.in.query = FALSE,
                                              use.mcols = TRUE))
   if (touching == "both") {
-    ## Case 3: The novel SJ touches annotated exon on both end. We try to
+    ## Case 3: The novel SJ touches annotated exons on both ends. We try to
     ## identify a novel exon on both the start and the end of the novel SJ
     full_coord_end <- mapply(identify_exon_end, r_mapped, junctions$start,
                              junctions$end, junctions$seqnames,
