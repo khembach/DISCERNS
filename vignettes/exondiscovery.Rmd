@@ -1,0 +1,57 @@
+---
+title: "exondiscovery"
+author: "Katharina Hembach"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette explains how to use the `exondiscovery` package. The package contains an example dataset that consists of genome annotations in GTF format, a text file with splice junctions and a BAM file with mapped paired-end reads.
+
+## Annotation
+
+First, we need to prepare the genome annotation.
+```{r}
+test_gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+                        mustWork = TRUE)
+anno <- prepare_annotation(test_gtf)
+names(anno)
+```
+
+The annotation object is a list with three different elements: `exons`, `introns` and `txdb`. The exons and introns are `GRanges` objects with all exons and introns in the GTF file and txdb is a TxDb object of the GTF file.
+
+## Exon prediction
+
+As input for the exon prediction, we need two output files from STAR: the SJ.out.tab file that contains all observed splice junctions (SJ) and the BAM file with the mapped reads.
+
+```{r}
+test_sj <- system.file("extdata", "selected.SJ.out.tab", 
+                       package = "exondiscovery", mustWork = TRUE)
+test_bam <- system.file("extdata", "selected.bam", 
+                        package = "exondiscovery", mustWork = TRUE)
+
+novel_exon_df <- find_novel_exons(sj_filename = test_sj, 
+                                  annotation = anno, 
+                                  min_unique = 1, 
+                                  bam = test_bam)
+```
+
+The parameter `sj_filename` defines the path to the SJ.out.tab file, `annotation` requires an annotation list as returned by `prepare_annotation()`. `min_unique` determines the minimally required number of reads that have to suport a splice junction. All splice junctions in the SJ.out.tab file with less supporting reads are removed. `bam` is the path to the corresponding BAM file.
+
+## Extending annotation
+
+The last step is to add the predicted exons to the existing annotation. To do this, we simply need the `novel_exon_df` object with the predicted exons and the path to the GTF annotation. The function `extend_gtf()` reads in the GTF file, finds the correct transcript(s) for each novel exon and created new entries for each of the novel exons. A `GRanges` object with the GTF annotation including the novel exons is returned. 
+
+```{r}
+gtf_added <- extend_gtf(test_gtf, novel_exon_df)
+```

@@ -27,3 +27,7 @@ Imports:
     stringr,
     magrittr,
     rlang
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
