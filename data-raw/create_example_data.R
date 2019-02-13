@@ -14,16 +14,27 @@ r_file <- file.path(base_dir, "reduced_GTF",
 dat <- read.table(r_file, header = TRUE, stringsAsFactors = FALSE)
 
 ## Select 6 exons: exons and microexons from the easy, medium and hard classes
-## with more than one supporting read.
+## with more than five supporting read.
 ## We pick the first entry of each class
-sel <- dat %>% group_by(type, class) %>%
-  filter(count_reads > 1) %>%
+sel <- dat %>% filter(class != "complicated") %>%
+  group_by(type, class) %>%
+  filter(count_reads > 5) %>%
   slice(1) %>%
   ungroup()
+## make sure that the complicated exons are short enough so we can find them
+## with paired-end reads of length 101
+compl <- dat %>% filter(class == "complicated") %>%
+  group_by(type) %>%
+  filter(count_reads > 5, width < 190) %>%
+  slice(1) %>%
+  ungroup()
+sel <- rbind(sel, compl)
+write.table(sel, file = "inst/extdata/novel_exons.txt", col.names = TRUE,
+            row.names = FALSE, quote = FALSE, sep = "\t")
 
 gtf <- import(GTF)
 gtf <- gtf[gtf$gene_id %in% sel$gene_id]
-usethis::use_data(gtf)
+# usethis::use_data(gtf)
 export(gtf, con = "inst/extdata/selected.gtf")
 
 
