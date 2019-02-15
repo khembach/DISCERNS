@@ -2,10 +2,11 @@
 % Please edit documentation in R/exon_discovery.R
 \name{find_novel_exons}
 \alias{find_novel_exons}
-\title{Predict novel cassette exons from SJ.out.tab file from STAR}
+\title{Novel exon prediction}
 \usage{
 find_novel_exons(sj_filename, annotation, min_unique = 1,
-  gzipped = FALSE, verbose = TRUE, bam)
+  gzipped = FALSE, verbose = TRUE, bam, single_sj = TRUE,
+  read_based = TRUE)
 }
 \arguments{
 \item{sj_filename}{Path to SJ.out.tab file.}
@@ -21,10 +22,20 @@ junction.}
 \item{verbose}{Print messages about the progress.}
 
 \item{bam}{Path to BAM file.}
+
+\item{single_sj}{A logical scalar. Should single novel splice junctions be
+used for prediction? Requires a BAM file.}
+
+\item{read_based}{A logical scalar. Should novel exons be predicted from
+reads or read-pairs with two novel splice junctions? Requires a BAM file.}
 }
 \value{
 Data frame with novel exons.
 }
 \description{
-Predict novel cassette exons from SJ.out.tab file from STAR
+Predict novel exons based on the SJ.out.tab file from STAR and/or a BAM file.
+}
+\details{
+The function predicts different types of exons. The different prediction
+modes require different inputs.
 }

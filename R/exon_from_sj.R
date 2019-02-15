@@ -97,7 +97,6 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
 
   sj_hit <- which(r_ranges$end == j_start - 1)
   sj_hit_upstream <- sj_hit[r_ranges$nr[sj_hit] > 1]
-
   if (length(sj_hit_upstream) > 0) {
     ## if there are reads with an junction upstream of the SJ of interest
     unique(data.frame(seqnames = j_seqnames,
@@ -115,7 +114,7 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
              end = j_start - 1,
              rstart = j_end + 1,
              strand = j_strand)
-    }
+  }
 }
 
 
@@ -222,6 +221,12 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
   rs <- lapply(junctions$id, function(x) reads[mcols(reads)$which_label == x])
   r_mapped <- lapply(rs, function(x) grglist(x, order.as.in.query = FALSE,
                                              use.mcols = TRUE))
+  ## remove all junctions without any supporting reads
+  r_ind <- lengths(r_mapped) > 0
+  if (!all(r_ind)) {
+    junctions <- junctions[r_ind,]
+    r_mapped <- r_mapped[r_ind]
+  }
   if (touching == "both") {
     ## Case 3: The novel SJ touches annotated exons on both ends. We try to
     ## identify a novel exon on both the start and the end of the novel SJ

@@ -1,27 +1,37 @@
-#' Predict novel cassette exons from SJ.out.tab file from STAR
+#'Novel exon prediction
 #'
-#' @param sj_filename Path to SJ.out.tab file.
-#' @param annotation List with exon and intron annotation as GRanges. Created
-#'   with prepare_annotation().
-#' @param min_unique Minimal number of reads required to map over a splice
-#'   junction.
-#' @param verbose Print messages about the progress.
-#' @param gzipped A logical scalar. Is the input file gzipped? Default FALSE.
-#' @param bam Path to BAM file.
+#'Predict novel exons based on the SJ.out.tab file from STAR and/or a BAM file.
 #'
-#' @return Data frame with novel exons.
+#'The function predicts different types of exons. The different prediction
+#'modes require different inputs.
 #'
-#' @importFrom data.table fread
-#' @import GenomicRanges
-#' @import IRanges
-#' @importFrom S4Vectors queryHits subjectHits
-#' @importFrom GenomicFeatures genes exonsBy
-#' @importFrom dplyr full_join mutate
+#'@param sj_filename Path to SJ.out.tab file.
+#'@param annotation List with exon and intron annotation as GRanges. Created
+#'  with prepare_annotation().
+#'@param min_unique Minimal number of reads required to map over a splice
+#'  junction.
+#'@param verbose Print messages about the progress.
+#'@param gzipped A logical scalar. Is the input file gzipped? Default FALSE.
+#'@param bam Path to BAM file.
+#'@param single_sj  A logical scalar. Should single novel splice junctions be
+#'  used for prediction? Requires a BAM file.
+#'@param read_based  A logical scalar. Should novel exons be predicted from
+#'  reads or read-pairs with two novel splice junctions? Requires a BAM file.
 #'
-#' @export
+#'@return Data frame with novel exons.
 #'
+#'@importFrom data.table fread
+#'@import GenomicRanges
+#'@import IRanges
+#'@importFrom S4Vectors queryHits subjectHits
+#'@importFrom GenomicFeatures genes exonsBy
+#'@importFrom dplyr full_join mutate
+#'
+#'@export
 find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
-                                      gzipped = FALSE, verbose = TRUE, bam) {
+                             gzipped = FALSE, verbose = TRUE, bam,
+                             single_sj = TRUE, read_based = TRUE) {
+
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
 
@@ -44,7 +54,6 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   ## let the user decide which ones to run
 
   ## ============= junction prefiltering ============= #
-
   if (verbose) message("Step 2: Prefiltering splice junctions")
 
   sj_gr <- GRanges(sj)
@@ -64,64 +73,79 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   ## ======== Cassette exon prediction ======== #
 
   if (verbose) message("Step 3: Predicting cassette exons")
-
   ce <- predict_cassette_exon(sj_unann, introns)
   novel_exons <- ce[["ne"]]
   sj_unann <- ce[["sj"]]
 
+
   ## ==== Find novel exon coordinates from single novel splice junctions ======
-  if (verbose)
-    message("Step 4: Find exon coordinates of exons adjacent to novel splice
-            junctions")
+  if (single_sj) {
+    if (verbose)
+      message("Step 4: Find exon coordinates of exons adjacent to novel splice
+              junctions")
+    if (missing(bam)) {
+      stop("Please specify a BAM file with parameter bam.")
+    }
+    reads <- import_novel_sj_reads(bam, sj_unann)
 
-  reads <- import_novel_sj_reads(bam, sj_unann)
+    ebyTr <- exonsBy(annotation[["txdb"]], by = "tx", use.names = TRUE)
+    gtxdb <- genes(annotation[["txdb"]])
 
-  ebyTr <- exonsBy(annotation[["txdb"]], by = "tx", use.names = TRUE)
-  gtxdb <- genes(annotation[["txdb"]])
+    ## convert GRanges to data.frame otherwise we cannot use apply functions
+    sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
 
-  ## convert GRanges to data.frame otherwise we cannot use apply functions
-  sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
+    ## annotate which end of a splice junction is touching an annotated exon
+    touching <- mapply(sj_touching_exon, sj_unann$seqnames, sj_unann$start,
+                       sj_unann$end, sj_unann$strand,
+                       MoreArgs = list(exons = exons))
+    sj_unann$touching <- touching
+    ## remove the ambiguous sj that touch different genes on both ends
+    sj_unann <- sj_unann[!is.na(touching), ]
 
-  ## annotate which end of a splice junction is touching an annotated exon
-  touching <- mapply(sj_touching_exon, sj_unann$seqnames, sj_unann$start,
-                     sj_unann$end, sj_unann$strand,
-                     MoreArgs = list(exons = exons))
-  sj_unann$touching <- touching
-  ## remove the ambiguous sj that touch different genes on both ends
-  sj_unann <- sj_unann[!is.na(touching), ]
+    res <- identify_exon_from_sj(sj_unann, reads = reads,
+                                  txdb = annotation[["txdb"]],
+                                  gtxdb = gtxdb, ebyTr = ebyTr)
 
-  res <- identify_exon_from_sj(sj_unann, reads = reads,
-                                txdb = annotation[["txdb"]],
-                                gtxdb = gtxdb, ebyTr = ebyTr)
-
-  if (nrow(res) > 0) {
     novel_exons <- rbind(novel_exons, res)
+
   }
 
+  if (read_based) {
   ## ============ Predict novel exons from reads with 2 junctions ==============
-  if (verbose) message("Step 5: Predict novel exons from reads with 2 junctions")
+    if (verbose) message("Step 5: Predict novel exons from reads with 2
+                         junctions")
 
-  junc_reads <- filter_junction_reads(bam)
-  read_pred <- predict_jr_exon(junc_reads, annotation)
+    if (missing(bam)) {
+      stop("Please specify a BAM file with parameter bam.")
+    }
+    junc_reads <- filter_junction_reads(bam)
+    read_pred <- predict_jr_exon(junc_reads, annotation)
 
-  ## make sure the factors have the same levels
-  combined <- union(levels(read_pred$strand), levels(novel_exons$strand))
-  ## predictions from both the reads and the SJ.out.tab
-  novel_exons <- full_join(mutate(read_pred,
-                                  strand = factor(strand, levels = combined)),
-                           mutate(novel_exons,
-                                  strand = factor(strand, levels = combined)))
+    if (exists("novel_exons", inherits = FALSE)) {
+      ## make sure the factors have the same levels
+      combined <- union(levels(read_pred$strand), levels(novel_exons$strand))
+      ## predictions from both the reads and the SJ.out.tab
+      novel_exons <- full_join(mutate(read_pred,
+                                      strand = factor(strand,
+                                                      levels = combined)),
+                               mutate(novel_exons,
+                                      strand = factor(strand,
+                                                      levels = combined)))
+    } else {
+      novel_exons <- read_pred
+    }
 
-  ## ======= Predict novel exons from reads pairs with each one junction =======
-  if (verbose) message("Step 6: Predict novel exons from reads pairs with each 1
-                      junction")
+  ## ======= Predict novel exons from read pairs with each one junction =======
+    if (verbose) message("Step 6: Predict novel exons from reads pairs with each
+                         1 junction")
 
-  read_pair_pred <- predict_jrp_exon(junc_reads, annotation)
-  combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
-  novel_exons <- full_join(mutate(read_pair_pred,
-                                  strand = factor(strand, levels = combined)),
-                           mutate(novel_exons,
-                                  strand = factor(strand, levels = combined)))
+    read_pair_pred <- predict_jrp_exon(junc_reads, annotation)
+    combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
+    novel_exons <- full_join(mutate(read_pair_pred,
+                                    strand = factor(strand, levels = combined)),
+                             mutate(novel_exons,
+                                    strand = factor(strand, levels = combined)))
+  }
 
   ## ============ Compute minimal junction read coverage ===========
   if(verbose) message("Step 7: Computing minimal junction read coverage")
