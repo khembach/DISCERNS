@@ -17,6 +17,7 @@
 #'  used for prediction? Requires a BAM file.
 #'@param read_based  A logical scalar. Should novel exons be predicted from
 #'  reads or read-pairs with two novel splice junctions? Requires a BAM file.
+#' @param yieldSize Integer scalar. Read the BAM file in chunks of this size.
 #'
 #'@return Data frame with novel exons.
 #'
@@ -30,7 +31,8 @@
 #'@export
 find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                              gzipped = FALSE, verbose = TRUE, bam,
-                             single_sj = TRUE, read_based = TRUE) {
+                             single_sj = TRUE, read_based = TRUE, 
+                             yieldSize = 200000) {
 
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
@@ -118,7 +120,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
     }
-    junc_reads <- filter_junction_reads(bam)
+    junc_reads <- filter_junction_reads(bam, yieldSize = yieldSize)
     read_pred <- predict_jr_exon(junc_reads, annotation)
 
     if (exists("novel_exons", inherits = FALSE)) {
@@ -136,7 +138,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     }
 
   ## ======= Predict novel exons from read pairs with each one junction =======
-    if (verbose) message("Step 6: Predict novel exons from reads pairs with each
+    if (verbose) message("Step 6: Predict novel exons from read pairs with each
                          1 junction")
 
     read_pair_pred <- predict_jrp_exon(junc_reads, annotation)

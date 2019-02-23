@@ -1,45 +1,69 @@
-#' Filter reads with splice junctions from BAM file
+#'Junction reads from BAM file
 #'
 #' The function takes a BAM file as input and returns all reads with "N" in the
-#' CIGAR string and that are properly paired (-f 2).
+#' CIGAR string and that are properly paired.
 #'
-#' @param bam The path to the BAM file.
+#'The yieldSize param determines the runtime: The bigger, the faster. If possible, use at
+#'least 200000.
 #'
-#' @return GAlignments object with junction reads
+#'@param bam The path to the BAM file.
+#'@param yieldSize Integer scalar. The number of reads that should be read in
+#'  each chunk.
 #'
-#' @importFrom data.table fread ":="
-#' @importFrom Rsamtools bamFlagAsBitMatrix
-#' @export
+#'@return GAlignments object with all junction reads from the bam file.
+#'@importFrom Rsamtools BamFile scanBamFlag bamFlagAsBitMatrix 
+#'@importFrom GenomicAlignments readGAlignments cigarOpTable cigar
+#'@importFrom GenomicFiles reduceByYield
 #'
-filter_junction_reads <- function(bam) {
-  junc_reads <- fread(cmd = paste0("samtools view  -f 2 ", bam,
-                           " | awk '{if ($6 ~ /N/) print $1, $2, $3, $4, $6}'"))
-  names(junc_reads) <- c("qname", "flag", "seqnames", "pos", "cigar")
+#'@export
+#'
+filter_junction_reads <- function(bam, yieldSize) {
+  bf <- BamFile(bam, yieldSize = yieldSize)
+  YIELD <- function(x, ...) {
+    flag0 <- scanBamFlag(isProperPair = TRUE)
+    param <- ScanBamParam(what = c("qname", "flag"), flag = flag0)
+    readGAlignments(bf, param = param)
+  }
+  
+  MAP <- function(reads, ...) {
+    reads <- reads[ cigarOpTable(cigar(reads))[ ,"N"] > 0, ]
+    #We infer the read strand from the flag: our data comes from Illumina HiSeq
+    #2000 (stranded TruSeq libary preparation with dUTPs ). Thus, the last read in
+    #a pair determines the strand of the junction --> we reverse the strand of the
+    #first reads
+    bfbm <- bamFlagAsBitMatrix(mcols(reads)$flag,
+                               bitnames = c("isMinusStrand", "isFirstMateRead"))
+    mcols(reads)$isMinusStrand <- bfbm[ , "isMinusStrand"]
+    mcols(reads)$isFirstMateRead <- bfbm[ , "isFirstMateRead"]
 
-  #We infer the read strand from the flag: our data comes from Illumina HiSeq
-  #2000 (stranded TruSeq libary preparation with dUTPs ). Thus, the last read in
-  #a pair determines the strand of the junction --> we reverse the strand of the
-  #first reads
-  junc_reads <- cbind(junc_reads,
-                      bamFlagAsBitMatrix(junc_reads$flag,
-                                         bitnames = c("isMinusStrand",
-                                                    "isFirstMateRead")) )
+    ## TODO: make sure that the strand of both reads is correct --> use a
+    ## parameter for the type of sequencing
 
-  ## TODO: make sure that the strand of both reads is correct --> use a
-  ## parameter for the type of sequencing
-
-  ## isMinusStrand==0 & isFirstMateRead==0 --> "+"
-  ## isMinusStrand==0 & isFirstMateRead==1 --> "-"
-  ## isMinusStrand==1 & isFirstMateRead==0 --> "-"
-  ## isMinusStrand==1 & isFirstMateRead==1 --> "+"
-  junc_reads[, strand := ifelse(junc_reads$isMinusStrand +
-                                  junc_reads$isFirstMateRead == 0, "+",
-                                ifelse(junc_reads$isMinusStrand +
-                                         junc_reads$isFirstMateRead == 1, "-",
-                                       "+"))]
-  junc_reads
+    ## isMinusStrand==0 & isFirstMateRead==0 --> "+"
+    ## isMinusStrand==0 & isFirstMateRead==1 --> "-"
+    ## isMinusStrand==1 & isFirstMateRead==0 --> "-"
+    ## isMinusStrand==1 & isFirstMateRead==1 --> "+"
+    strand(reads) <- ifelse(mcols(reads)$isMinusStrand +
+                              mcols(reads)$isFirstMateRead == 0, "+",
+                            ifelse(mcols(reads)$isMinusStrand +
+                                     mcols(reads)$isFirstMateRead == 1, "-",
+                                   "+"))
+    reads
+  }
+  
+  DONE <- function(value) {
+    length(value) == 0L
+  }
+  
+  ## The MAP step can run in parallel if parallel = TRUE, but only for Mac/Linux
+  # register(MulticoreParam(2))
+  # ulimit -s 16384  to increase allows stack
+  # Cstack_info()
+  ## TODO: this currently does not work: C stack usage too close to limit
+  reduceByYield(bf, YIELD, MAP, REDUCE = c, DONE, parallel = FALSE)
+  
+  ## If there are multiple files available, we can use bplapply to distribute the files to workers
 }
-
 
 
 #' Predict novel exons from reads with 2 junctions
@@ -60,7 +84,6 @@ filter_junction_reads <- function(bam) {
 #' @return data.frame with the coordinates of the predicted novel exon. It has 6
 #'   columns: seqnames, lend, start, end, rstart and strand
 #'
-#' @importFrom stringr str_count
 #' @importFrom GenomicAlignments cigarRangesAlongReferenceSpace
 #' @importFrom GenomicFeatures intronsByTranscript
 #' @importFrom dplyr group_by summarise filter pull nth select rename ungroup n
@@ -73,18 +96,16 @@ filter_junction_reads <- function(bam) {
 predict_jr_exon <- function(junc_reads, annotation) {
   ##  keep all reads with 2 junctions and also look for novel junction combinations
   ## filter all reads with 2 "N" in cigar
-  two_jr<- junc_reads[str_count(junc_reads$cigar, "N") == 2, ]
-  two_jr <- two_jr[!duplicated(two_jr[, -"qname", with = FALSE]), ]
-
-  cigar_junc <- cigarRangesAlongReferenceSpace(cigar = two_jr$cigar,
-                                               flag = two_jr$flag,
-                                               pos = two_jr$pos,
+  two_jr <- junc_reads[njunc(junc_reads) == 2, ]
+  cigar_junc <- cigarRangesAlongReferenceSpace(cigar = cigar(two_jr),
+                                               flag = mcols(two_jr)$flag,
+                                               pos = start(two_jr),
                                                ops = "N")
-  names(cigar_junc) <- 1:nrow(two_jr)
+  names(cigar_junc) <- 1:length(two_jr)
   cigar_junc_gr <- unlist(cigar_junc)
-  cigar_junc_gr <- GRanges(two_jr$seqnames[as.integer(names(cigar_junc_gr))],
+  cigar_junc_gr <- GRanges(seqnames(two_jr)[as.integer(names(cigar_junc_gr))],
                            cigar_junc_gr,
-                           two_jr$strand[as.integer(names(cigar_junc_gr))])
+                           strand(two_jr)[as.integer(names(cigar_junc_gr))])
 
   ## we join the read junctions with the annotated introns: start is the first
   ## nucleotide in the intron and end the last nucleotide (excluding exons)
@@ -170,7 +191,6 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #' @return data.frame with the coordinates of the predicted novel exon. It has 6
 #'   columns: seqnames, lend, start, end, rstart and strand
 #'
-#' @importFrom stringr str_count
 #' @importFrom GenomicAlignments cigarRangesAlongReferenceSpace
 #' @importFrom GenomicFeatures intronsByTranscript
 #' @importFrom magrittr %>%
@@ -182,19 +202,21 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #' @export
 #'
 predict_jrp_exon <- function(junc_reads, annotation) {
-  junc_rp <- junc_reads[str_count(junc_reads$cigar, "N") == 1, ]
-  junc_rp <- junc_rp[duplicated(junc_rp$qname) | duplicated(junc_rp$qname,
+  junc_rp <- junc_reads[njunc(junc_reads) == 1, ]
+  junc_rp <- junc_rp[duplicated(mcols(junc_rp)$qname) | duplicated(mcols(junc_rp)$qname,
                                                             fromLast = TRUE), ]
-
+  
   ## keep all reads pairs where the junctions are already annotated
-  cigar_jp <- cigarRangesAlongReferenceSpace(cigar = junc_rp$cigar,
-                                             flag = junc_rp$flag,
-                                             pos = junc_rp$pos, ops = "N")
-  names(cigar_jp) <- junc_rp$qname
+  cigar_jp <- cigarRangesAlongReferenceSpace(cigar = cigar(junc_rp), 
+                                             flag = mcols(junc_rp)$flag,
+                                             pos = start(junc_rp),
+                                             ops = "N")
+
+  names(cigar_jp) <- mcols(junc_rp)$qname
   cigar_jp <- as.data.table(unlist(cigar_jp))
-  m <- match(cigar_jp$names, junc_rp$qname)
-  cigar_jp[ , ':=' (seqnames = as.integer(junc_rp$seqnames[m]),
-                    strand = junc_rp$strand[m])]
+  m <- match(cigar_jp$names, mcols(junc_rp)$qname)
+  cigar_jp[ , ':=' (seqnames = as.character(seqnames(junc_rp)[m]),
+                    strand = as.character(strand(junc_rp)[m]))]
 
   ## remove all duplicate junctions within one read pair and only keep the read
   ## pairs with two different junctions

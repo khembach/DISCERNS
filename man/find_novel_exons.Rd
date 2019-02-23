@@ -6,7 +6,7 @@
 \usage{
 find_novel_exons(sj_filename, annotation, min_unique = 1,
   gzipped = FALSE, verbose = TRUE, bam, single_sj = TRUE,
-  read_based = TRUE)
+  read_based = TRUE, yieldSize = 2e+05)
 }
 \arguments{
 \item{sj_filename}{Path to SJ.out.tab file.}
@@ -28,6 +28,8 @@ used for prediction? Requires a BAM file.}
 
 \item{read_based}{A logical scalar. Should novel exons be predicted from
 reads or read-pairs with two novel splice junctions? Requires a BAM file.}
+
+\item{yieldSize}{Integer scalar. Read the BAM file in chunks of this size.}
 }
 \value{
 Data frame with novel exons.

@@ -2,17 +2,24 @@
 % Please edit documentation in R/junction_reads.R
 \name{filter_junction_reads}
 \alias{filter_junction_reads}
-\title{Filter reads with splice junctions from BAM file}
+\title{Junction reads from BAM file}
 \usage{
-filter_junction_reads(bam)
+filter_junction_reads(bam, yieldSize)
 }
 \arguments{
 \item{bam}{The path to the BAM file.}
+
+\item{yieldSize}{Integer scalar. The number of reads that should be read in
+each chunk.}
 }
 \value{
-GAlignments object with junction reads
+GAlignments object with all junction reads from the bam file.
 }
 \description{
 The function takes a BAM file as input and returns all reads with "N" in the
-CIGAR string and that are properly paired (-f 2).
+CIGAR string and that are properly paired.
+}
+\details{
+The yieldSize param determines the runtime: The bigger, the faster. If possible, use at
+least 200000.
 }

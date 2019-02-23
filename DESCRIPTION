@@ -24,9 +24,9 @@ Imports:
     S4Vectors,
     GenomicAlignments,
     Rsamtools,
-    stringr,
     magrittr,
-    rlang
+    rlang,
+    GenomicFiles
 Suggests: 
     knitr,
     rmarkdown
