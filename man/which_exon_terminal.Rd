@@ -9,10 +9,10 @@ which_exon_terminal(j, txdb = txdb, gtxdb = gtxdb, ebyTr = ebyTr)
 \arguments{
 \item{j}{Novel splice junction as GRange.}
 
-\item{txdb}{TxDb object, e.g. the txdb slot from the prepare_annotation()
-return object}
+\item{txdb}{\code{TxDb} object, e.g. the txdb slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
+return object.}
 
-\item{gtxdb}{All genes from the TxDB object}
+\item{gtxdb}{All genes from the TxDB object.}
 
 \item{ebyTr}{All exons from the TxDB object per transcript.}
 }
@@ -26,7 +26,7 @@ If the exon at the start of the SJ is terminal, the function returns "start",
 }
 \section{Details}{
 
-  The function first overlaps the SJ with all genes and then with all
-  transcripts of the overlapping gene.
+The function first overlaps the SJ with all genes and then with all
+transcripts of the overlapping gene.
 }
 

@@ -2,16 +2,17 @@
 % Please edit documentation in R/prepare_annotation.R
 \name{prepare_annotation}
 \alias{prepare_annotation}
-\title{Prepare exon and intron annotation from GTF file}
+\title{Prepare anntation}
 \usage{
 prepare_annotation(GTF)
 }
 \arguments{
-\item{GTF}{Path to GTF file}
+\item{GTF}{Path to GTF file.}
 }
 \value{
-List with exon and intron annotations as GRanges and the TxDB object.
+List with exon and intron annotations as GRanges and the \code{TxDB}
+object.
 }
 \description{
-Prepare exon and intron annotation from GTF file
+Read exon and intron annotation from a GTF file.
 }

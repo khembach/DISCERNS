@@ -7,14 +7,14 @@
 match_sj_in_intron(s, e)
 }
 \arguments{
-\item{s}{Junctions from the start of the intron as GRanges}
+\item{s}{Junctions from the start of the intron as GRanges.}
 
-\item{e}{Junctions from the end of the intron as GRanges}
+\item{e}{Junctions from the end of the intron as GRanges.}
 }
 \value{
 A vector with the seqnames, end of the preceding exon, start of the
-  novel exon, end of the novel exon, start of the consecutive exon, and the
-  strand.
+novel exon, end of the novel exon, start of the consecutive exon, and the
+strand.
 }
 \description{
 Match novel splice junctions within an intron

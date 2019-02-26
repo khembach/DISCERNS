@@ -12,17 +12,17 @@ identify_exon_from_sj(df, reads, txdb, gtxdb, ebyTr)
 \item{reads}{GAlignment object with reads that contain novel splice
 junctions.}
 
-\item{txdb}{TxDb object, e.g. the txdb slot from the prepare_annotation()
+\item{txdb}{TxDb object, e.g. the txdb slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
 
-\item{gtxdb}{GRanges: All genes from the TxDB object.}
+\item{gtxdb}{GRanges: All genes from the \code{TxDB} object.}
 
-\item{ebyTr}{GRanges: All exons from the TxDB object per transcript.}
+\item{ebyTr}{GRanges: All exons from the \code{TxDB} object per transcript.}
 }
 \value{
 data.frame with the coordinates of the identifies novel exon from all
-  splice junctions in df. It has 6 columns: seqnames, lend, start, end,
-  rstart and strand
+splice junctions in df. It has 6 columns:
+\code{seqnames}, \code{lend}, \code{start}, \code{end}, \code{rstart} and \code{strand}.
 }
 \description{
 Determine the size of the novel exon (unpaired internal splice junctions (SJ)

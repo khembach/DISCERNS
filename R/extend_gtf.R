@@ -1,20 +1,19 @@
 #' Find all transcripts that contain a given exon
 #'
-#' Given a novel exon, find the IDs of all transcripts that contain the up and
-#' downstream exons of novel predicted exon.
+#' Given a novel exon, find the IDs of all transcripts that contain the upstream
+#' and downstream exons.
 #'
-#' @param exons GRanges object with exon annotations
-#' @param seqn scalar, seqname of the novel exon
-#' @param lend integer scalar, end of the upstream exon
-#' @param start integer scalar, start of the novel exon
-#' @param end integer scalar, end of the novel exon
-#' @param rstart integer scalar, start of the downstream exon
-#' @param strand factor scalar, strand of the novel exon (either "+" or "-")
+#' @param exons GRanges object with exon annotations.
+#' @param seqn Scalar, seqname of the novel exon.
+#' @param lend Integer scalar, end of the upstream exon.
+#' @param start Integer scalar, start of the novel exon.
+#' @param end Integer scalar, end of the novel exon.
+#' @param rstart Integer scalar, start of the downstream exon.
+#' @param strand Factor scalar, strand of the novel exon (either "+" or "-").
 #'
-#' @return character vector with the transcript IDs of all complementary
-#'   transcripts.
+#' @return Character vector with transcript IDs.
 #' @export
-#'
+#' 
 get_transcripts <- function(seqn, lend, start, end, rstart, strand, exons) {
   terminal <- 0
   ## if lend or rstart is NA, the exon is terminal
@@ -92,15 +91,16 @@ get_transcripts <- function(seqn, lend, start, end, rstart, strand, exons) {
 #' ID is the original exon id with a suffix that identifies the novel exon:
 #' ID_me/exon_start:end
 #'
-#' @param tr_ids character vector with
-#' @param exons GRanges object with exon annotations from a GTF file
-#' @param start integer scalar, start of the novel exon
-#' @param end integer scalar, end of the novel exon
+#' @param tr_ids Character vector with transcrip ids as returned by
+#'   [get_transcripts()]
+#' @param exons GRanges object with exon annotations from a GTF file.
+#' @param start Integer scalar, start of the novel exon.
+#' @param end Integer scalar, end of the novel exon.
 #'
 #' @return GRanges object with the exon annotation of the novel exon and all
-#'   exons from the transcripts in tr_ids
+#'   exons from the transcripts in tr_ids.
 #' @export
-#'
+#' 
 new_transcript <- function(start, end, tr_ids, exons) {
   type <- ifelse ((end - start + 1) < 28, "me", "exon")
   new_entries <- GRanges()
@@ -128,16 +128,23 @@ new_transcript <- function(start, end, tr_ids, exons) {
 #'
 #' Add predicted novel exons to the correct transcripts in a GTF annotation.
 #'
+#' For each novel exon in `pred` (as returned by [find_novel_exons()], the list
+#' of transcripts that contain its up- and downstream exons is determined. A
+#' random exon from each transcript is copied and the start and end coordinates
+#' are exchanged with those of the novel exon. The exon number and exon version
+#' are set to NA and the new exon ID is the original exon id with a suffix that
+#' identifies the novel exon: ID_me/exon_start:end
+#'
 #' @param gtf GTF annotations, either the path to the GTF file or a GRanges
 #'   object
 #' @param pred data.frame with predicted novel exons as returned by
-#'   find_novel_exons()
+#'   [find_novel_exons()]
 #'
 #' @return GRanges object with annotations from the GTF file and extended with
-#'   the novel exons
+#'   the novel exons.
 #' @importFrom rtracklayer import
 #' @export
-#'
+#' 
 extend_gtf <- function(gtf, pred) {
   if (is.character(gtf)) {
     gtf <- import(gtf)

@@ -7,26 +7,26 @@
 predict_jrp_exon(junc_reads, annotation)
 }
 \arguments{
-\item{junc_reads}{GAlignments object with junction read}
+\item{junc_reads}{GAlignments object with junction read.}
 
 \item{annotation}{List with exon and intron annotation as GRanges. Created
 with prepare_annotation().}
 }
 \value{
 data.frame with the coordinates of the predicted novel exon. It has 6
-  columns: seqnames, lend, start, end, rstart and strand
+columns: \code{seqnames}, \code{lend}, \code{start}, \code{end}, \code{rstart} and \code{strand}.
 }
 \description{
 Novel exons are predicted from paired-end reads where each read spans one
 splice junction. First, the read pairs are filtered and the distance between
 the end of the first junction and the start of the second junction has to be
-< 2*(readlength-minOverhang) + minIntronSize. Here, readlength is the length
-of the reads, minOverhang is the minmal required read overhang over a splice
-junction of the alignment tool and minIntronSize is the minimal required
+\code{< 2*(readlength-minOverhang) + minIntronSize}. Here, \code{readlength} is the length
+of the reads, \code{minOverhang} is the minmal required read overhang over a splice
+junction of the alignment tool and \code{minIntronSize} is the minimal required
 intron length of the alignment tool. For example, paired-end reads with a
 lenght of 101 nts and a minimal overhang of 6 and a minimal intron length of
 21 allow a distance of at most 211 nucleotides between the two splice
-junctions: 2*(101-6) + 21 = 211. If the distance between the two splice
+junctions: \code{2*(101-6) + 21 = 211}. If the distance between the two splice
 junctions exceeds the limit, it cannot be guaranteed that the junctions are
 connected to the same exon. Splice junction pairs that are already annotated
 in a transcript are removed. Novel exons are predicted from the remaining

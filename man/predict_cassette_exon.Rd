@@ -7,27 +7,27 @@
 predict_cassette_exon(sj_unann, introns)
 }
 \arguments{
-\item{sj_unann}{GRanges object with unannotated splice junctions}
+\item{sj_unann}{GRanges object with unannotated splice junctions.}
 
 \item{introns}{GRanges object with intron annotations, e.g. the "introns" slot
-from the prepare_annotation() return object.}
+from the \code{\link[=prepare_annotation]{prepare_annotation()}} return object.}
 }
 \value{
-list with two slots: "ne" is a data.frame with the coordinates of
-the identifies cassette exons. It has 6 columns: seqnames, lend, start, end,
-rstart and strand. "sj" is a GRanges object with the SJs from sj_unann that
-were not used to predict a cassette exons.
+List with two slots: "ne" is a data.frame with the coordinates of
+the identifies cassette exons. It has 6 columns: \code{seqnames}, \code{lend}, \code{start},
+\code{end}, \code{rstart} and \code{strand}.. "sj" is a GRanges object with the SJs from
+sj_unann that were not used to predict a cassette exons.
 }
 \description{
 Novel cassette exons are predicted from pairs of novel splice junctions (SJ)
 that are located within an annotated intron and share the start and end
 coordinates of the intron:
+\preformatted{
 X---------X   annotated intron
 x---x         novel splice junction
       x---x   novel splice junction
-X---NNN----X  predicted cassette exon (N)
+X---NNN---X  predicted cassette exon (N)
 }
-\details{
 First, the novel SJs are filtered: Only SJs that are located within an annotated
 intron and that share their start or end coordinates with the intron are
 retained. All introns that share both their start and end with a novel SJ are

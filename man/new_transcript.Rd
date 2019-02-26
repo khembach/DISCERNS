@@ -7,17 +7,18 @@
 new_transcript(start, end, tr_ids, exons)
 }
 \arguments{
-\item{start}{integer scalar, start of the novel exon}
+\item{start}{Integer scalar, start of the novel exon.}
 
-\item{end}{integer scalar, end of the novel exon}
+\item{end}{Integer scalar, end of the novel exon.}
 
-\item{tr_ids}{character vector with}
+\item{tr_ids}{Character vector with transcrip ids as returned by
+\code{\link[=get_transcripts]{get_transcripts()}}}
 
-\item{exons}{GRanges object with exon annotations from a GTF file}
+\item{exons}{GRanges object with exon annotations from a GTF file.}
 }
 \value{
 GRanges object with the exon annotation of the novel exon and all
-  exons from the transcripts in tr_ids
+exons from the transcripts in tr_ids.
 }
 \description{
 Create GTF annotations for a novel exon, given a list of transcript IDs and

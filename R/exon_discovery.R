@@ -1,13 +1,96 @@
-#'Novel exon prediction
+#' Novel exon prediction
 #'
-#'Predict novel exons based on the SJ.out.tab file from STAR and/or a BAM file.
+#' Predict novel exons based on the SJ.out.tab file from STAR and/or a BAM file.
+#' The function has three different prediction modes:
+#'   1. Cassette exons
+#'   2. Novel exons from a single novel splice junction
+#'   3. Novel exons from reads/read pairs with two novel splice junctions.
+#'   
+#' The cassette exon prediction is always preformed and the second and third 
+#' mode can be turned on/off with the paramters `single_sj` and `read_based`.
 #'
-#'The function predicts different types of exons. The different prediction
-#'modes require different inputs.
+#' The three different prediction modes are explained in more detail below:
+#' 
+#' Novel cassette exons are predicted from pairs of novel splice junctions (SJ)
+#' that are located within an annotated intron and share the start and end
+#' coordinates of the intron:
+#' \preformatted{
+#' X---------X   annotated intron
+#' x---x         novel SJ
+#'       x---x   novel SJ
+#' X---NNN---X  predicted cassette exon (N)
+#' }
+#' First, the novel SJs are filtered: Only SJs that are located within an annotated
+#' intron and that share their start or end coordinates with the intron are
+#' retained. All introns that share both their start and end with a novel SJ are
+#' tested for cassette exons. If the two novel SJs within an intron do not
+#' overlap and are on the same strand, a novel cassette exon is predicted.
+#' 
+#' The second mode (parameter `single_sj`) is based on single novel SJs as input.
+#' The novel SJs can be divided in three different cases: 
+#'    1. Novel SJs that touch an annotated exon with their start (5' end). 
+#'    2. Novel SJs that touch annotated exons with their end (3' end). 
+#'    3. Novel SJs that touch an annoated exon on both ends (5' and 3' end).
 #'
+#' The three cases can be illustrated as follows:
+#'    1. Start touches annotation
+#'    \preformatted{
+#' AAAA            annotated exon
+#'    J---J        novel SJ
+#'  xxx---xx----x  read
+#'        NN----X  novel exon and second SJ
+#'    }
+#'    2. End touches annotation
+#'    \preformatted{
+#'            AAA annotated exon
+#'       J----J   novel SJ
+#' xx---xx----xx  read
+#'  X---NN        novel exon and second SJ
+#'    }
+#'    3. Both ends touch annotation
+#'    \preformatted{
+#'        AAAAA  annotated exon
+#' AAAA          annotated exon
+#'    J---J      novel junction
+#'   NN---xxxxx  possible transcript with novel exon NN at the 5' of the SJ
+#' xxxx---NN     possible transcript with novel exon NN at the 3' of the SJ
+#'    }
+#' 
+#' For case 1 and 2, the function reads the BAM file and takes all reads that
+#' support the novel SJ and have a second SJ. The coordinates of the second SJ,
+#' and thus the coordinates of the novel exon are determined from the reads. In
+#' case 3, the function searches for reads with two novel SJs that support a
+#' possible novel exon on either end of the SJ. If no reads are found, the
+#' function checks if the novel exon could be terminal, i.e. the first or last
+#' exon in a transcript. If yes, the novel exon is not connected to an annotated
+#' exon at its start/end and thus the start/end coordinate of the novel exon
+#' cannot be determined clearly. As an approximation, the function takes the
+#' boundaries of the read with the longest mapping to the novel exon.
+#' 
+#' The third prediction mode (parameter `read_based`) only uses reads and the
+#' annotation as input. Novel exons are predicted from paired-end reads where
+#' each read spans one SJ. First, the read pairs are filtered and the distance
+#' between the end of the first junction and the start of the second junction
+#' has to be ```< 2*(readlength-minOverhang) + minIntronSize```. Here,
+#' `readlength` is the length of the reads, `minOverhang` is the minmal required
+#' read overhang over a SJ of the alignment tool and `minIntronSize` is the
+#' minimal required intron length of the alignment tool. For example, paired-end
+#' reads with a lenght of 101 nts and a minimal overhang of 6 and a minimal
+#' intron length of 21 allow a distance of at most 211 nucleotides between the
+#' two SJs: 2*(101-6) + 21 = 211. If the distance between the two SJs exceeds
+#' the limit, it cannot be guaranteed that the junctions are connected to the
+#' same exon. SJ pairs that are already annotated in a transcript are removed.
+#' 
+#' Novel exons are predicted from novel combinations of annotated SJs. Reads
+#' spanning two SJs are filtered from the set of all spliced reads. Each of the
+#' SJ pairs are compared with the annotated SJs per transcript and already
+#' annotated SJ pairs are removed. A novel exon is only predicted if it is
+#' contained within the boundaries of an annotated gene. This prevents the
+#' prediction of false positive exons from wrongly mapped reads.
+#' 
 #'@param sj_filename Path to SJ.out.tab file.
 #'@param annotation List with exon and intron annotation as GRanges. Created
-#'  with prepare_annotation().
+#'  with [prepare_annotation()].
 #'@param min_unique Minimal number of reads required to map over a splice
 #'  junction.
 #'@param verbose Print messages about the progress.
@@ -17,9 +100,18 @@
 #'  used for prediction? Requires a BAM file.
 #'@param read_based  A logical scalar. Should novel exons be predicted from
 #'  reads or read-pairs with two novel splice junctions? Requires a BAM file.
-#' @param yieldSize Integer scalar. Read the BAM file in chunks of this size.
+#'@param yieldSize Integer scalar. Read the BAM file in chunks of this size.
 #'
-#'@return Data frame with novel exons.
+#'@return Data.frame with the coordinates of the identified novel exons. Each
+#'  row in the data.frame is a predicted novel exon. The columns are the
+#'  chromosome (`seqnames`), the end of the upstream exon (`lend`) in the
+#'  transcript, the start and end of the novel exon (`start` and `end`), the
+#'  start of the downstream exon (`rstart`) in the transcript and the strand
+#'  (`strand`). The last three columns are the number of reads supporting each
+#'  of the two splice junctions that define the novel exon: `unique_left` is the
+#'  number of reads supporting the SJ from `lend` to `start` and `unique_right`
+#'  is the number of supporting reads for the SJ from `end` to `rstart`.
+#'  `min_reads` is the minimum of the two.
 #'
 #'@importFrom data.table fread
 #'@import GenomicRanges

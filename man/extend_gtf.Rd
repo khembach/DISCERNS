@@ -11,12 +11,20 @@ extend_gtf(gtf, pred)
 object}
 
 \item{pred}{data.frame with predicted novel exons as returned by
-find_novel_exons()}
+\code{\link[=find_novel_exons]{find_novel_exons()}}}
 }
 \value{
 GRanges object with annotations from the GTF file and extended with
-  the novel exons
+the novel exons.
 }
 \description{
 Add predicted novel exons to the correct transcripts in a GTF annotation.
+}
+\details{
+For each novel exon in \code{pred} (as returned by \code{\link[=find_novel_exons]{find_novel_exons()}}, the list
+of transcripts that contain its up- and downstream exons is determined. A
+random exon from each transcript is copied and the start and end coordinates
+are exchanged with those of the novel exon. The exon number and exon version
+are set to NA and the new exon ID is the original exon id with a suffix that
+identifies the novel exon: ID_me/exon_start:end
 }

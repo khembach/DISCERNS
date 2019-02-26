@@ -8,11 +8,11 @@
 downstream_count(x)
 }
 \arguments{
-\item{x}{GRangesList object with mapped parts of reads}
+\item{x}{GRangesList object with mapped parts of reads.}
 }
 \value{
 data.frame with the range of each mapped part and the nr of each part
-  from max-1 to 0 (most downstream part in the read)
+from max-1 to 0 (most downstream part in the read)
 }
 \description{
 Count mapped parts in a read from max-1 to 0 in the most downstream part

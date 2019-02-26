@@ -7,10 +7,10 @@
 transcript_range(gr)
 }
 \arguments{
-\item{gr}{GRanges object with all exons in a transcript}
+\item{gr}{GRanges object with all exons in a transcript.}
 }
 \value{
-GRange with start and end of the transcript
+GRange with start and end of the transcript.
 }
 \description{
 This function returns a GRange for a transcript given as a set of exons in a

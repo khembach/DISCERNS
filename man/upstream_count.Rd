@@ -7,11 +7,11 @@
 upstream_count(x)
 }
 \arguments{
-\item{x}{GRangesList object with mapped parts of reads}
+\item{x}{GRangesList object with mapped parts of reads.}
 }
 \value{
 data.frame with the range of each mapped part and the nr of each part
-  from  1 to max (from 5' to 3')
+from  1 to max (from 5' to 3').
 }
 \description{
 Count mapped parts in a read from 1 to max (from 5' to 3')

@@ -7,20 +7,20 @@
 sj_touching_exon(seqnames, start, end, strand, exons)
 }
 \arguments{
-\item{seqnames}{String splice junction seqname}
+\item{seqnames}{String: splice junction seqname.}
 
-\item{start}{integer start of splice junction}
+\item{start}{Integer: start of splice junction.}
 
-\item{end}{integer end of splice junction}
+\item{end}{Integer: end of splice junction.}
 
-\item{strand}{factor strand of splice junction ("-" or "+")}
+\item{strand}{Factor: strand of splice junction ("-" or "+").}
 
-\item{exons}{Exon annotation as GRanges}
+\item{exons}{Exon annotation as GRanges.}
 }
 \value{
 A string that defines which side of the splice junction is touching
-  an exon: "both", "start", "end", NA if the splice junction does not touch
-  an exon or if the exons come from different genes.
+an exon: "both", "start", "end", NA if the splice junction does not touch
+an exon or if the exons come from different genes.
 }
 \description{
 Find all exons with the same strand as the splice junction and that touch it.

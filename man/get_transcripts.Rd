@@ -7,25 +7,24 @@
 get_transcripts(seqn, lend, start, end, rstart, strand, exons)
 }
 \arguments{
-\item{seqn}{scalar, seqname of the novel exon}
+\item{seqn}{Scalar, seqname of the novel exon.}
 
-\item{lend}{integer scalar, end of the upstream exon}
+\item{lend}{Integer scalar, end of the upstream exon.}
 
-\item{start}{integer scalar, start of the novel exon}
+\item{start}{Integer scalar, start of the novel exon.}
 
-\item{end}{integer scalar, end of the novel exon}
+\item{end}{Integer scalar, end of the novel exon.}
 
-\item{rstart}{integer scalar, start of the downstream exon}
+\item{rstart}{Integer scalar, start of the downstream exon.}
 
-\item{strand}{factor scalar, strand of the novel exon (either "+" or "-")}
+\item{strand}{Factor scalar, strand of the novel exon (either "+" or "-").}
 
-\item{exons}{GRanges object with exon annotations}
+\item{exons}{GRanges object with exon annotations.}
 }
 \value{
-character vector with the transcript IDs of all complementary
-  transcripts.
+Character vector with transcript IDs.
 }
 \description{
-Given a novel exon, find the IDs of all transcripts that contain the up and
-downstream exons of novel predicted exon.
+Given a novel exon, find the IDs of all transcripts that contain the upstream
+and downstream exons.
 }

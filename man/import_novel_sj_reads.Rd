@@ -13,7 +13,7 @@ import_novel_sj_reads(bam, sj_unann)
 }
 \value{
 GAlignments object with all reads from the BAM file that contain a
-  novel splice junctions.
+novel splice junctions.
 }
 \description{
 This functions takes a BAM file and a GRanges object with unannotated splice

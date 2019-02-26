@@ -1,10 +1,10 @@
-#'Junction reads from BAM file
+#' Junction reads from BAM file
 #'
 #' The function takes a BAM file as input and returns all reads with "N" in the
 #' CIGAR string and that are properly paired.
 #'
-#'The yieldSize param determines the runtime: The bigger, the faster. If possible, use at
-#'least 200000.
+#' The yieldSize param determines the runtime: The bigger, the faster. If possible, use at
+#' least 200000.
 #'
 #'@param bam The path to the BAM file.
 #'@param yieldSize Integer scalar. The number of reads that should be read in
@@ -79,7 +79,7 @@ filter_junction_reads <- function(bam, yieldSize) {
 #'
 #' @param annotation List with exon and intron annotation as GRanges. Created
 #'   with prepare_annotation().
-#' @param junc_reads GAlignments object with junction read
+#' @param junc_reads GAlignments object with junction read.
 #'
 #' @return data.frame with the coordinates of the predicted novel exon. It has 6
 #'   columns: seqnames, lend, start, end, rstart and strand
@@ -172,13 +172,13 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #' Novel exons are predicted from paired-end reads where each read spans one
 #' splice junction. First, the read pairs are filtered and the distance between
 #' the end of the first junction and the start of the second junction has to be
-#' < 2*(readlength-minOverhang) + minIntronSize. Here, readlength is the length
-#' of the reads, minOverhang is the minmal required read overhang over a splice
-#' junction of the alignment tool and minIntronSize is the minimal required
+#' `< 2*(readlength-minOverhang) + minIntronSize`. Here, `readlength` is the length
+#' of the reads, `minOverhang` is the minmal required read overhang over a splice
+#' junction of the alignment tool and `minIntronSize` is the minimal required
 #' intron length of the alignment tool. For example, paired-end reads with a
 #' lenght of 101 nts and a minimal overhang of 6 and a minimal intron length of
 #' 21 allow a distance of at most 211 nucleotides between the two splice
-#' junctions: 2*(101-6) + 21 = 211. If the distance between the two splice
+#' junctions: `2*(101-6) + 21 = 211`. If the distance between the two splice
 #' junctions exceeds the limit, it cannot be guaranteed that the junctions are
 #' connected to the same exon. Splice junction pairs that are already annotated
 #' in a transcript are removed. Novel exons are predicted from the remaining
@@ -186,10 +186,10 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #'
 #' @param annotation List with exon and intron annotation as GRanges. Created
 #'   with prepare_annotation().
-#' @param junc_reads GAlignments object with junction read
+#' @param junc_reads GAlignments object with junction read.
 #'
 #' @return data.frame with the coordinates of the predicted novel exon. It has 6
-#'   columns: seqnames, lend, start, end, rstart and strand
+#'   columns: `seqnames`, `lend`, `start`, `end`, `rstart` and `strand`.
 #'
 #' @importFrom GenomicAlignments cigarRangesAlongReferenceSpace
 #' @importFrom GenomicFeatures intronsByTranscript

@@ -7,7 +7,7 @@
 get_second_sj(junctions, reads, touching, txdb, gtxdb, ebyTr)
 }
 \arguments{
-\item{junctions}{data.frame with novel splice junctions}
+\item{junctions}{data.frame with novel splice junctions.}
 
 \item{reads}{GAlignment object with reads that contain novel splice
 junctions.}
@@ -18,42 +18,48 @@ touches an annotated exon.}
 \item{txdb}{TxDb object, e.g. the txdb slot from the prepare_annotation()
 return object.}
 
-\item{gtxdb}{GRanges: All genes from the TxDB object.}
+\item{gtxdb}{GRanges: All genes from the \code{TxDB} object.}
 
-\item{ebyTr}{GRanges: All exons from the TxDB object per transcript.}
+\item{ebyTr}{GRanges: All exons from the \code{TxDB} object per transcript.}
 }
 \value{
 data.frame with the coordinates of the novel exon. It has 6 columns:
-  seqnames, lend, start, end, rstart and strand
+\code{seqnames}, \code{lend}, \code{start}, \code{end}, \code{rstart} and \code{strand}.
 }
 \description{
 This function takes a set of novel splice junctions (SJ) as input and returns
 a data.frame with the location of the novel exon and the coordinates of the
 neighbouring exons. There are three different cases: 1) Novel SJs that touch
 an annotated exon with their start (5' end). 2) Novel SJs that touch
-annotated exons with their end (3' end). 3) Novel SJs that touch and annoated
+annotated exons with their end (3' end). 3) Novel SJs that touch an annoated
 exon on both ends (5' and 3' end).
 }
 \details{
 The three cases can be illustrated as follows:
-1) Start touches annotation
+\enumerate{
+\item Start touches annotation
+\preformatted{
 AAAA            annotated exon
    J---J        novel junction
  xxx---xx----x  read
         X----X  function return
-
-2) End touches annotation
+}
+\item End touches annotation
+\preformatted{
            AAA annotated exon
       J----J   novel junction
 xx---xx----xx  read
  X---X         function return
-
-3) Both ends touch annotation
+}
+\item Both ends touch annotation
+\preformatted{
        AAAAA  annotated exon
 AAAA          annotated exon
    J---J      novel junction
   nn---xxxxx  possible transcript with novel exon nn at the 5' of the SJ
 xxxx---nn     possible transcript with novel exon nn at the 3' of the SJ
+}
+}
 
 In case 3, we search for reads with two novel splice junctions that support a
 novel exon on either end of the SJ. If we do not find such reads, we check if

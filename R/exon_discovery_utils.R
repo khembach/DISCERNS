@@ -2,11 +2,11 @@
 #'
 #' Find all exons with the same strand as the splice junction and that touch it.
 #' If a sj touches two exons, the exons must come from the same gene.
-#' @param exons Exon annotation as GRanges
-#' @param seqnames String splice junction seqname
-#' @param start integer start of splice junction
-#' @param end integer end of splice junction
-#' @param strand factor strand of splice junction ("-" or "+")
+#' @param exons Exon annotation as GRanges.
+#' @param seqnames String: splice junction seqname.
+#' @param start Integer: start of splice junction.
+#' @param end Integer: end of splice junction.
+#' @param strand Factor: strand of splice junction ("-" or "+").
 #'
 #' @return A string that defines which side of the splice junction is touching
 #'   an exon: "both", "start", "end", NA if the splice junction does not touch
@@ -40,8 +40,8 @@ sj_touching_exon <- function(seqnames, start, end, strand, exons) {
 
 #' Match novel splice junctions within an intron
 #'
-#' @param s Junctions from the start of the intron as GRanges
-#' @param e Junctions from the end of the intron as GRanges
+#' @param s Junctions from the start of the intron as GRanges.
+#' @param e Junctions from the end of the intron as GRanges.
 #'
 #' @return A vector with the seqnames, end of the preceding exon, start of the
 #'   novel exon, end of the novel exon, start of the consecutive exon, and the
@@ -62,9 +62,9 @@ match_sj_in_intron <- function(s, e) {
 #' This function returns a GRange for a transcript given as a set of exons in a
 #' GRanges object.
 #'
-#' @param gr GRanges object with all exons in a transcript
+#' @param gr GRanges object with all exons in a transcript.
 #'
-#' @return GRange with start and end of the transcript
+#' @return GRange with start and end of the transcript.
 #' @export
 #'
 transcript_range <- function(gr) {
@@ -84,9 +84,9 @@ transcript_range <- function(gr) {
 #' If the exon at the start of the SJ is terminal, the function returns "start",
 #' "end" if it is the exon at the end and "NA" if none of the exons are terminal
 #' @param j Novel splice junction as GRange.
-#' @param txdb TxDb object, e.g. the txdb slot from the prepare_annotation()
-#'   return object
-#' @param gtxdb All genes from the TxDB object
+#' @param txdb `TxDb` object, e.g. the txdb slot from the [prepare_annotation()]
+#'   return object.
+#' @param gtxdb All genes from the TxDB object.
 #' @param ebyTr All exons from the TxDB object per transcript.
 #'
 #' @return Scalar with either "start", "end" or "NA"

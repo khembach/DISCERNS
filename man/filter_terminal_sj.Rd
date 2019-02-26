@@ -2,20 +2,20 @@
 % Please edit documentation in R/exon_from_sj.R
 \name{filter_terminal_sj}
 \alias{filter_terminal_sj}
-\title{Filter novel exon predictions of potential terminal exon.}
+\title{Filter novel exon predictions of potential terminal exon}
 \usage{
 filter_terminal_sj(start_coords, end_coords, j, txdb = txdb,
   gtxdb = gtxdb, ebyTr = ebyTr)
 }
 \arguments{
 \item{start_coords}{data.frame with exon predictions at the start of the
-novel SJ}
+novel SJ.}
 
-\item{end_coords}{data.frame with exon predictions at the end of the novel SJ}
+\item{end_coords}{data.frame with exon predictions at the end of the novel SJ.}
 
-\item{j}{data.frame with one row: the novel splice junction}
+\item{j}{data.frame with one row: the novel splice junction.}
 
-\item{txdb}{TxDb object, e.g. the txdb slot from the prepare_annotation()
+\item{txdb}{TxDb object, e.g. the txdb slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
 
 \item{gtxdb}{GRanges: All genes from the TxDB object.}
@@ -24,7 +24,7 @@ return object.}
 }
 \value{
 data.frame with exon predictions, NULL if ambiguous or there are no
-  supporting reads
+supporting reads
 }
 \description{
 The exon predictions based on reads at the start or end of the novel splice
