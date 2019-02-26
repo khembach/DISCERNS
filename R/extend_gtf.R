@@ -44,7 +44,7 @@ get_transcripts <- function(seqn, lend, start, end, rstart, strand, exons) {
     ## where the new one will be located
     tr <- intersect(id1, id2)
     if (length(tr) == 0 ) NA
-
+    
     olap_tr <- mcols(subsetByOverlaps(exons[mcols(exons)$transcript_id %in% tr],
                                       GRanges(seqnames = seqn,
                                               ranges = IRanges(lend + 1,
@@ -59,13 +59,13 @@ get_transcripts <- function(seqn, lend, start, end, rstart, strand, exons) {
     ## overlapping exons!!
     tr <- unique(id2)
     if (length(tr) == 0) NA
-
+    
     olap_tr <- mcols(subsetByOverlaps(exons[mcols(exons)$transcript_id %in% tr],
                                       GRanges(seqnames = seqn,
                                               ranges = IRanges(start,
                                                                rstart - 1),
-                                               strand = strand),
-                                       ignore.strand = FALSE))$transcript_id
+                                              strand = strand),
+                                      ignore.strand = FALSE))$transcript_id
     return(tr[!tr %in% olap_tr])
   } else{  ## 3' terminal exon
     tr <- unique(id1)
@@ -104,13 +104,13 @@ get_transcripts <- function(seqn, lend, start, end, rstart, strand, exons) {
 new_transcript <- function(start, end, tr_ids, exons) {
   type <- ifelse ((end - start + 1) < 28, "me", "exon")
   new_entries <- GRanges()
-
+  
   tr_copy <- exons[which(mcols(exons)$transcript_id  %in% tr_ids)]
   mcols(tr_copy)$"transcript_id" <- paste0(mcols(tr_copy)$"transcript_id",
                                            "_", type, "_", start, ":", end)
   mcols(tr_copy)$"transcript_name" <- paste0(mcols(tr_copy)$"transcript_name",
                                              "_", type, "_", start, ":", end)
-
+  
   copy <- tr_copy[match(paste0(tr_ids, "_", type, "_", start, ":", end),
                         mcols(tr_copy)$transcript_id )]
   ranges(copy) <- IRanges(start, end)  ## replace the ranges
@@ -118,7 +118,7 @@ new_transcript <- function(start, end, tr_ids, exons) {
   mcols(copy)[c("exon_number", "exon_version")] <- NA
   mcols(copy)$"exon_id" <- paste0(mcols(copy)$"exon_id", "_", type, "_",
                                   start, ":", end)
-
+  
   return(c(tr_copy, copy))
 }
 
@@ -145,26 +145,49 @@ new_transcript <- function(start, end, tr_ids, exons) {
 #' @importFrom rtracklayer import
 #' @export
 #' 
+#' @examples 
+#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+#'                    mustWork = TRUE)
+#'                    
+#' ## Here we artificially create a data.frame with predicted exons. 
+#' ## In general, the novel exons will be predicted with the function 
+#' ## find_novel_exons()               
+#' novel_exon1 <- data.frame(seqnames = c("19", "22"), 
+#'                           start = c(47228064,41737092),
+#'                           end = c(47228185, 41737150), strand = c("-", "+"),
+#'                           lend = c(47226541, 41736141), 
+#'                           rstart = c(47228589, 41738533))
+#'                           
+#' ## add the predicted exons to the GTF file                          
+#' new_gtf <- extend_gtf(gtf, novel_exon1)
+#' 
+#' ## save the new GTF to file with the export() function from rtracklayer
+#' library(rtracklayer)
+#' export(object = new_gtf, con = "extended_annotation.gtf")
 extend_gtf <- function(gtf, pred) {
   if (is.character(gtf)) {
     gtf <- import(gtf)
   }
   exons <- gtf[mcols(gtf)$type == "exon", ]
-
+  
   ## transcript IDs for each novel exon
-  ## TODO: speed up
-  tr_ids <- mapply(get_transcripts, pred$seqnames, pred$lend, pred$start,
-                   pred$end, pred$rstart, pred$strand,
-                   MoreArgs = list(exons = exons))
-
+  if (nrow(pred) == 1) {
+    tr_ids <- list(get_transcripts(pred$seqnames, pred$lend, pred$start,
+                                   pred$end, pred$rstart, pred$strand,exons))
+  } else {
+    ## TODO: speed up
+    tr_ids <- mapply(get_transcripts, pred$seqnames, pred$lend, pred$start,
+                     pred$end, pred$rstart, pred$strand,
+                     MoreArgs = list(exons = exons))
+  }
   ## remove the novel exons that do not have a transcript
   ## TODO: what to do with the removed predictions?
   pred <- pred[lengths(tr_ids) > 0, ]
   tr_ids <- tr_ids[lengths(tr_ids) > 0]
-
+  
   novel_entries <- mapply(new_transcript, pred$start, pred$end, tr_ids,
                           MoreArgs = list(exons = exons))
-
+  
   ## extend the original gtf with the novel entries
   c(gtf, do.call("c", novel_entries))
 }

@@ -28,3 +28,22 @@ are exchanged with those of the novel exon. The exon number and exon version
 are set to NA and the new exon ID is the original exon id with a suffix that
 identifies the novel exon: ID_me/exon_start:end
 }
+\examples{
+gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+                   mustWork = TRUE)
+                   
+## Here we artificially create a data.frame with predicted exons. 
+## In general, the novel exons will be predicted with the function 
+## find_novel_exons()               
+novel_exon1 <- data.frame(seqnames = c("19", "22"), 
+                          start = c(47228064,41737092),
+                          end = c(47228185, 41737150), strand = c("-", "+"),
+                          lend = c(47226541, 41736141), 
+                          rstart = c(47228589, 41738533))
+## add the predicted exons to the GTF file                          
+new_gtf <- extend_gtf(gtf, novel_exon1)
+
+## save the new GTF to file with the export() function from rtracklayer
+library(rtracklayer)
+export(object = new_gtf, con = "extended_annotation.gtf")
+}
