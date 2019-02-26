@@ -37,7 +37,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
 
-  if (verbose) message("Step 1: Reading splice junctions from file")
+  if (verbose) message("Reading splice junctions from file")
 
   if (gzipped) {
     sj <- fread(paste0("zcat ", sj_filename))
@@ -56,7 +56,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   ## let the user decide which ones to run
 
   ## ============= junction prefiltering ============= #
-  if (verbose) message("Step 2: Prefiltering splice junctions")
+  if (verbose) message("Prefiltering splice junctions")
 
   sj_gr <- GRanges(sj)
 
@@ -74,7 +74,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
 
   ## ======== Cassette exon prediction ======== #
 
-  if (verbose) message("Step 3: Predicting cassette exons")
+  if (verbose) message("Predicting cassette exons")
   ce <- predict_cassette_exon(sj_unann, introns)
   novel_exons <- ce[["ne"]]
   sj_unann <- ce[["sj"]]
@@ -83,8 +83,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   ## ==== Find novel exon coordinates from single novel splice junctions ======
   if (single_sj) {
     if (verbose)
-      message("Step 4: Find exon coordinates of exons adjacent to novel splice
-              junctions")
+      message("Find exon coordinates of exons adjacent to novel splice junctions")
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
     }
@@ -114,8 +113,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
 
   if (read_based) {
   ## ============ Predict novel exons from reads with 2 junctions ==============
-    if (verbose) message("Step 5: Predict novel exons from reads with 2
-                         junctions")
+    if (verbose) message("Predict novel exons from reads with 2 junctions")
 
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
@@ -138,8 +136,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     }
 
   ## ======= Predict novel exons from read pairs with each one junction =======
-    if (verbose) message("Step 6: Predict novel exons from read pairs with each
-                         1 junction")
+    if (verbose) message("Predict novel exons from read pairs with each 1 junction")
 
     read_pair_pred <- predict_jrp_exon(junc_reads, annotation)
     combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
@@ -150,7 +147,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   }
 
   ## ============ Compute minimal junction read coverage ===========
-  if(verbose) message("Step 7: Computing minimal junction read coverage")
+  if(verbose) message("Computing minimal junction read coverage")
 
   ##  Add columns with the number of reads supporting the left and right splice
   ##  junction and the minimum of both
