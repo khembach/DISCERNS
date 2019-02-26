@@ -126,11 +126,13 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
       combined <- union(levels(read_pred$strand), levels(novel_exons$strand))
       ## predictions from both the reads and the SJ.out.tab
       novel_exons <- full_join(mutate(read_pred,
-                                      strand = factor(strand,
+                                      strand = factor(strand, 
                                                       levels = combined)),
                                mutate(novel_exons,
                                       strand = factor(strand,
-                                                      levels = combined)))
+                                                      levels = combined)),
+                               by = c("seqnames", "start", "end", "strand", 
+                                      "lend", "rstart"))
     } else {
       novel_exons <- read_pred
     }
@@ -143,8 +145,12 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     novel_exons <- full_join(mutate(read_pair_pred,
                                     strand = factor(strand, levels = combined)),
                              mutate(novel_exons,
-                                    strand = factor(strand, levels = combined)))
+                                    strand = factor(strand, levels = combined)),
+                             by = c("seqnames", "start", "end", "strand", 
+                                    "lend", "rstart"))
   }
+  
+  
 
   ## ============ Compute minimal junction read coverage ===========
   if(verbose) message("Computing minimal junction read coverage")
