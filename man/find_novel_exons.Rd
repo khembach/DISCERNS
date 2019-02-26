@@ -139,3 +139,35 @@ annotated SJ pairs are removed. A novel exon is only predicted if it is
 contained within the boundaries of an annotated gene. This prevents the
 prediction of false positive exons from wrongly mapped reads.
 }
+\examples{
+sj <- system.file("extdata", "selected.SJ.out.tab",  
+                  package = "exondiscovery", mustWork = TRUE)
+bam <- system.file("extdata", "selected.bam", 
+                   package = "exondiscovery", mustWork = TRUE) 
+                   
+## prepare annotation 
+gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+                   mustWork = TRUE)
+anno <- prepare_annotation(gtf)
+     
+## predict novel exons                                                                
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
+                 bam = bam)
+                 
+## predict only cassette exons
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
+                 single_sj = FALSE, read_based = FALSE)   
+                 
+## only predict exons from novel splice junctions
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,  
+                 bam = bam, read_based = FALSE)  
+                 
+## turn verbose off
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
+                 bam = bam, verbose = FALSE)           
+
+## increase chunk size for BAM file reading if lots of memory is available
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
+                 bam = bam, yieldSize = 1000000)
+
+}

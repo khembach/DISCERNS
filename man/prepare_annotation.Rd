@@ -16,3 +16,9 @@ object.
 \description{
 Read exon and intron annotation from a GTF file.
 }
+\examples{
+gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+                   mustWork = TRUE)
+anno <- prepare_annotation(gtf)
+names(anno)
+}

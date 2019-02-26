@@ -12,6 +12,11 @@
 #'
 #' @export
 #' 
+#' @examples
+#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+#'                    mustWork = TRUE)
+#' anno <- prepare_annotation(gtf)
+#' names(anno)
 prepare_annotation <- function(GTF) {
 
   gtf <- import(GTF)
