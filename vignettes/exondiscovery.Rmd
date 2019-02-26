@@ -18,40 +18,75 @@ knitr::opts_chunk$set(
 
 This vignette explains how to use the `exondiscovery` package. The package contains an example dataset that consists of genome annotations in GTF format, a text file with splice junctions and a BAM file with mapped paired-end reads.
 
-## Annotation
+## Prepare annotation
 
 First, we need to prepare the genome annotation.
 ```{r}
-test_gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+library(exondiscovery)
+gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
                         mustWork = TRUE)
-anno <- prepare_annotation(test_gtf)
+anno <- prepare_annotation(gtf)
 names(anno)
 ```
 
 The annotation object is a list with three different elements: `exons`, `introns` and `txdb`. The exons and introns are `GRanges` objects with all exons and introns in the GTF file and txdb is a TxDb object of the GTF file.
 
-## Exon prediction
+## Predict novel exons
 
-As input for the exon prediction, we need two output files from STAR: the SJ.out.tab file that contains all observed splice junctions (SJ) and the BAM file with the mapped reads.
+As input for the exon prediction, we need two output files from STAR: the SJ.out.tab file that contains all observed splice junctions (SJ) and the BAM file with the mapped reads (optional).
+
+We can predict novel exons with the function `find_novel_exons`. The parameter `sj_filename` defines the path to the SJ.out.tab file, `annotation` requires an annotation list as returned by `prepare_annotation()`. `min_unique` determines the minimally required number of reads that have to suport a splice junction. All splice junctions in the SJ.out.tab file with less supporting reads are removed. `bam` is the path to the corresponding BAM file.
 
 ```{r}
-test_sj <- system.file("extdata", "selected.SJ.out.tab", 
+sj <- system.file("extdata", "selected.SJ.out.tab", 
                        package = "exondiscovery", mustWork = TRUE)
-test_bam <- system.file("extdata", "selected.bam", 
+bam <- system.file("extdata", "selected.bam", 
                         package = "exondiscovery", mustWork = TRUE)
 
-novel_exon_df <- find_novel_exons(sj_filename = test_sj, 
+novel_exon_df <- find_novel_exons(sj_filename = sj, 
                                   annotation = anno, 
                                   min_unique = 1, 
-                                  bam = test_bam)
+                                  bam = bam)
+novel_exon_df
 ```
 
-The parameter `sj_filename` defines the path to the SJ.out.tab file, `annotation` requires an annotation list as returned by `prepare_annotation()`. `min_unique` determines the minimally required number of reads that have to suport a splice junction. All splice junctions in the SJ.out.tab file with less supporting reads are removed. `bam` is the path to the corresponding BAM file.
+The output is a data.frame where each row is a predicted novel exon. The columns are the chromosome (`seqnames`), the end of the upstream exon (`lend`) in the transcript, the start and end of the novel exon (`start` and `end`), the start of the downstream exon (`rstart`) in the transcript and the strand (`strand`). 
+The last three columns are the number of reads supporting each of the two splice junctions that define the novel exon: `unique_left` is the number of reads supporting the SJ from `lend` to `start` and `unique_right` is the number of supporting reads for the SJ from `end` to `rstart`. `min_reads` is the minimum of the two.
 
-## Extending annotation
+If the predicted exon is terminal, i.e. it is the first or last exon in a transcript, then `lend` or `rstart` are `NA`.
+
+## Prediction modes
+
+`find_novel_exons` can predict novel exons in three different ways:
+
+1. Predict cassette exons from pairs of novel SJs (no BAM file required). The novel SJs from the SJ.out.tab file are compared with the intron annotations. Novel cassette exons are predicted from pairs of novel SJs that are located within an annotated intron and share the start and end coordinates of the intron. 
+2. Predict novel exons from a single novel SJ. Additionally to the novel SJ, the function requires a BAM file. It filters all reads that share the novel SJ and have a second SJ. The boundaries of the novel exon are determines based on the mapped read regions.
+3. Predict novel exons from reads with two SJs. All single reads or read pairs with two SJs are filtered from the BAM file. The function identifies novel combinations of annotated SJs to find novel splicing events.
+
+The second and third prediction mode can be turned on/off with the parameter `single_sj` (second mode) and `read_based` (third mode). The parameters are `TRUE` per default. A BAM file is not requried, if both parameters are turned off.
+
+```{r}
+novel_exon_df <- find_novel_exons(sj_filename = sj, 
+                                  annotation = anno, 
+                                  min_unique = 1, 
+                                  single_sj = FALSE,
+                                  read_based = FALSE)
+novel_exon_df
+```
+
+## Extend GTF annotation
 
 The last step is to add the predicted exons to the existing annotation. To do this, we simply need the `novel_exon_df` object with the predicted exons and the path to the GTF annotation. The function `extend_gtf()` reads in the GTF file, finds the correct transcript(s) for each novel exon and created new entries for each of the novel exons. A `GRanges` object with the GTF annotation including the novel exons is returned. 
 
 ```{r}
-gtf_added <- extend_gtf(test_gtf, novel_exon_df)
+gtf_added <- extend_gtf(gtf, novel_exon_df)
+gtf_added
+```
+
+The novel exons can be identified by the `transcript_id`, `transcript_name` and `exon_id` metadata columns in the returned GRanges object. The identifiers include the start and end location of the novel exon.
+The returned GRanges object from `extend_gtf` can be saved to a GTF file with the `export` function from the `rtracklayer` [Bioconductor package](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html).
+
+```{r, eval = FALSE}
+library(rtracklayer)
+export(object = gtf_added, con = "extended_annotation.gtf")
 ```
