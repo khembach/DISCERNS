@@ -103,7 +103,7 @@
 #'  used for prediction? Requires a BAM file.
 #'@param read_based  A logical scalar. Should novel exons be predicted from
 #'  reads or read-pairs with two novel splice junctions? Requires a BAM file.
-#'@param yieldSize Integer scalar. Read the BAM file in chunks of this size.
+#'@param yield_size Integer scalar. Read the BAM file in chunks of this size.
 #'
 #'@return Data.frame with the coordinates of the identified novel exons. Each
 #'  row in the data.frame is a predicted novel exon. The columns are the
@@ -163,7 +163,7 @@
 find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                              gzipped = FALSE, verbose = TRUE, bam,
                              single_sj = TRUE, read_based = TRUE, 
-                             yieldSize = 200000) {
+                             yield_size = 200000) {
 
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
@@ -253,7 +253,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
     }
-    junc_reads <- filter_junction_reads(bam, yieldSize = yieldSize)
+    junc_reads <- filter_junction_reads(bam, yield_size = yield_size)
     read_pred <- predict_jr_exon(junc_reads, annotation)
 
     if (exists("novel_exons", inherits = FALSE)) {

@@ -7,7 +7,7 @@
 #' least 200000.
 #'
 #'@param bam The path to the BAM file.
-#'@param yieldSize Integer scalar. The number of reads that should be read in
+#'@param yield_size Integer scalar. The number of reads that should be read in
 #'  each chunk.
 #'
 #'@return GAlignments object with all junction reads from the bam file.
@@ -17,8 +17,8 @@
 #'
 #'@export
 #'
-filter_junction_reads <- function(bam, yieldSize) {
-  bf <- BamFile(bam, yieldSize = yieldSize)
+filter_junction_reads <- function(bam, yield_size) {
+  bf <- BamFile(bam, yieldSize = yield_size)
   YIELD <- function(x, ...) {
     flag0 <- scanBamFlag(isProperPair = TRUE)
     param <- ScanBamParam(what = c("qname", "flag"), flag = flag0)

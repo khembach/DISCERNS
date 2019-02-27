@@ -4,12 +4,12 @@
 \alias{filter_junction_reads}
 \title{Junction reads from BAM file}
 \usage{
-filter_junction_reads(bam, yieldSize)
+filter_junction_reads(bam, yield_size)
 }
 \arguments{
 \item{bam}{The path to the BAM file.}
 
-\item{yieldSize}{Integer scalar. The number of reads that should be read in
+\item{yield_size}{Integer scalar. The number of reads that should be read in
 each chunk.}
 }
 \value{
