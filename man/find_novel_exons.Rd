@@ -161,7 +161,11 @@ find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 ## only predict exons from novel splice junctions
 find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,  
                  bam = bam, read_based = FALSE)  
-                 
+
+## Only consider novel splice junctions with at least ten supporting reads
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 10, 
+                 bam = bam)     
+                               
 ## turn verbose off
 find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
                  bam = bam, verbose = FALSE)           

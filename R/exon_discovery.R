@@ -144,7 +144,11 @@
 #' ## only predict exons from novel splice junctions
 #' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,  
 #'                  bam = bam, read_based = FALSE)  
-#'                  
+#' 
+#' ## Only consider novel splice junctions with at least ten supporting reads
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 10, 
+#'                  bam = bam)     
+#'                                
 #' ## turn verbose off
 #' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
 #'                  bam = bam, verbose = FALSE)           
@@ -201,8 +205,12 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   if (verbose) message("Predicting cassette exons")
   ce <- predict_cassette_exon(sj_unann, introns)
   novel_exons <- ce[["ne"]]
-  sj_unann <- ce[["sj"]]
-
+  if (length(ce[["sj"]]) > 0) {
+    sj_unann <- ce[["sj"]]
+  } else {
+    single_sj <- FALSE
+    if (verbose) message("No novel SJs left, skipping single SJ step.")
+  }
 
   ## ==== Find novel exon coordinates from single novel splice junctions ======
   if (single_sj) {
@@ -273,8 +281,6 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                              by = c("seqnames", "start", "end", "strand", 
                                     "lend", "rstart"))
   }
-  
-  
 
   ## ============ Compute minimal junction read coverage ===========
   if(verbose) message("Computing minimal junction read coverage")
