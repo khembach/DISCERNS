@@ -24,24 +24,25 @@ Add predicted novel exons to the correct transcripts in a GTF annotation.
 For each novel exon in \code{pred} (as returned by \code{\link[=find_novel_exons]{find_novel_exons()}}, the list
 of transcripts that contain its up- and downstream exons is determined. A
 random exon from each transcript is copied and the start and end coordinates
-are exchanged with those of the novel exon. The exon number and exon version
-are set to NA and the new exon ID is the original exon id with a suffix that
-identifies the novel exon: ID_me/exon_start:end
+are exchanged with those of the novel exon. The \code{exon_number} and
+\code{exon_version} are set to NA. The new \code{exon_id}, \code{transcript_id} and
+\code{transcript_name} are the original values with a suffix that identifies the
+novel exon by its ID: e.g. \code{exon_id}_ID or \code{transcript_name}_ID.
 }
 \examples{
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery",
                    mustWork = TRUE)
-                   
-## Here we artificially create a data.frame with predicted exons. 
-## In general, the novel exons will be predicted with the function 
-## find_novel_exons()               
-novel_exons <- data.frame(seqnames = c("19", "22"), 
+
+## Here we artificially create a data.frame with predicted exons.
+## In general, the novel exons will be predicted with the function
+## find_novel_exons()
+novel_exons <- data.frame(seqnames = c("19", "22"),
                           start = c(47228064,41737092),
                           end = c(47228185, 41737150), strand = c("-", "+"),
-                          lend = c(47226541, 41736141), 
-                          rstart = c(47228589, 41738533))
-                          
-## add the predicted exons to the GTF file                          
+                          lend = c(47226541, 41736141),
+                          rstart = c(47228589, 41738533), ID = c(1, 2))
+
+## add the predicted exons to the GTF file
 new_gtf <- extend_gtf(gtf, novel_exons)
 
 ## save the new GTF to file with the export() function from rtracklayer

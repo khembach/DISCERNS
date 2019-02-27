@@ -308,6 +308,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   ## take the minimum read coverage of both junctions
   novel_exons$min_reads <- pmin(novel_exons$unique_left,
                                 novel_exons$unique_right, na.rm = TRUE)
+  novel_exons$ID <- 1:nrow(novel_exons)
   novel_exons
 }
 

@@ -4,12 +4,14 @@
 \alias{new_transcript}
 \title{Create a new GTF entry for a novel exon}
 \usage{
-new_transcript(start, end, tr_ids, exons)
+new_transcript(start, end, pred_id, tr_ids, exons)
 }
 \arguments{
 \item{start}{Integer scalar, start of the novel exon.}
 
 \item{end}{Integer scalar, end of the novel exon.}
+
+\item{pred_id}{Integer scalar, ID of the predicted exon}
 
 \item{tr_ids}{Character vector with transcrip ids as returned by
 \code{\link[=get_transcripts]{get_transcripts()}}}
@@ -24,7 +26,8 @@ exons from the transcripts in tr_ids.
 Create GTF annotations for a novel exon, given a list of transcript IDs and
 the GTF annotations of all exons. A random exon from each transcript is
 copied and the start and end coordinates are exchanged with those of the
-novel exon. The exon number and exon version are set to NA and the new exon
-ID is the original exon id with a suffix that identifies the novel exon:
-ID_me/exon_start:end
+novel exon. The \code{exon_number} and \code{exon_version} are set to NA. The new
+\code{exon_id}, \code{transcript_id} and \code{transcript_name} are the original values with
+a suffix that identifies the novel exon by its ID: e.g. \code{exon_id}_ID or
+\code{transcript_name}_ID.
 }
