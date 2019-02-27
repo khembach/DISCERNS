@@ -18,7 +18,7 @@
 #' X---------X   annotated intron
 #' x---x         novel SJ
 #'       x---x   novel SJ
-#' X---NNN---X  predicted cassette exon (N)
+#' X---NNN---X   predicted cassette exon (N)
 #' }
 #' First, the novel SJs are filtered: Only SJs that are located within an annotated
 #' intron and that share their start or end coordinates with the intron are
@@ -66,12 +66,17 @@
 #' exon at its start/end and thus the start/end coordinate of the novel exon
 #' cannot be determined clearly. As an approximation, the function takes the
 #' boundaries of the read with the longest mapping to the novel exon.
-#' 
+
 #' The third prediction mode (parameter `read_based`) only uses reads and the
-#' annotation as input. Novel exons are predicted from paired-end reads where
-#' each read spans one SJ. First, the read pairs are filtered and the distance
-#' between the end of the first junction and the start of the second junction
-#' has to be ```< 2*(readlength-minOverhang) + minIntronSize```. Here,
+#' annotation as input. Novel exons are predicted from novel combinations of
+#' already annotated SJs. The SJ pairs are defined by a single read with two SJs
+#' or by read pairs where each read spans one junction. Each of the SJ pairs are
+#' compared with the annotated SJs per transcript and already annotated SJ pairs
+#' are removed. 
+ 
+#' For paired-end reads, there is an additional requirement: The distance
+#' between the end of the first read in a pair and the start of the second read
+#' has to has to be ```< 2*(readlength-minOverhang) + minIntronSize```. Here,
 #' `readlength` is the length of the reads, `minOverhang` is the minmal required
 #' read overhang over a SJ of the alignment tool and `minIntronSize` is the
 #' minimal required intron length of the alignment tool. For example, paired-end
@@ -79,14 +84,12 @@
 #' intron length of 21 allow a distance of at most 211 nucleotides between the
 #' two SJs: 2*(101-6) + 21 = 211. If the distance between the two SJs exceeds
 #' the limit, it cannot be guaranteed that the junctions are connected to the
-#' same exon. SJ pairs that are already annotated in a transcript are removed.
-#' 
-#' Novel exons are predicted from novel combinations of annotated SJs. Reads
-#' spanning two SJs are filtered from the set of all spliced reads. Each of the
-#' SJ pairs are compared with the annotated SJs per transcript and already
-#' annotated SJ pairs are removed. A novel exon is only predicted if it is
-#' contained within the boundaries of an annotated gene. This prevents the
-#' prediction of false positive exons from wrongly mapped reads.
+#' same exon.
+#'
+#' Novel exons are then predicted from novel combinations of the identified SJ 
+#' pairs. A novel exon is only predicted if it is contained within the 
+#' boundaries of an annotated gene. This prevents the prediction of false 
+#' positive exons because of wrongly mapped reads.
 #' 
 #'@param sj_filename Path to SJ.out.tab file.
 #'@param annotation List with exon and intron annotation as GRanges. Created
@@ -123,38 +126,38 @@
 #'@export
 #'
 #'@examples
-#' sj <- system.file("extdata", "selected.SJ.out.tab",  
+#' sj <- system.file("extdata", "selected.SJ.out.tab",
 #'                   package = "exondiscovery", mustWork = TRUE)
-#' bam <- system.file("extdata", "selected.bam", 
-#'                    package = "exondiscovery", mustWork = TRUE) 
-#'                    
-#' ## prepare annotation 
-#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+#' bam <- system.file("extdata", "selected.bam",
+#'                    package = "exondiscovery", mustWork = TRUE)
+#'
+#' ## prepare annotation
+#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery",
 #'                    mustWork = TRUE)
 #' anno <- prepare_annotation(gtf)
-#'      
-#' ## predict novel exons                                                                
-#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
+#'
+#' ## predict novel exons
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 #'                  bam = bam)
-#'                  
+#'
 #' ## predict only cassette exons
-#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
-#'                  single_sj = FALSE, read_based = FALSE)   
-#'                  
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+#'                  single_sj = FALSE, read_based = FALSE)
+#'
 #' ## only predict exons from novel splice junctions
-#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,  
-#'                  bam = bam, read_based = FALSE)  
-#' 
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+#'                  bam = bam, read_based = FALSE)
+#'
 #' ## Only consider novel splice junctions with at least ten supporting reads
-#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 10, 
-#'                  bam = bam)     
-#'                                
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 10,
+#'                  bam = bam)
+#'
 #' ## turn verbose off
-#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
-#'                  bam = bam, verbose = FALSE)           
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+#'                  bam = bam, verbose = FALSE)
 #'
 #' ## increase chunk size for BAM file reading if lots of memory is available
-#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1, 
+#' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 #'                  bam = bam, yieldSize = 1000000)
 #'
 find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
