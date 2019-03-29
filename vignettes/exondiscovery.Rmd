@@ -1,8 +1,9 @@
 ---
 title: "exondiscovery"
-author: "Katharina Hembach"
+author: "Katharina M. Hembach"
+package: exondiscovery
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
@@ -24,7 +25,7 @@ First, we need to prepare the genome annotation.
 ```{r}
 library(exondiscovery)
 gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
-                        mustWork = TRUE)
+                   mustWork = TRUE)
 anno <- prepare_annotation(gtf)
 names(anno)
 ```
@@ -39,9 +40,9 @@ We can predict novel exons with the function `find_novel_exons`. The parameter `
 
 ```{r}
 sj <- system.file("extdata", "selected.SJ.out.tab", 
-                       package = "exondiscovery", mustWork = TRUE)
+                  package = "exondiscovery", mustWork = TRUE)
 bam <- system.file("extdata", "selected.bam", 
-                        package = "exondiscovery", mustWork = TRUE)
+                   package = "exondiscovery", mustWork = TRUE)
 
 novel_exon_df <- find_novel_exons(sj_filename = sj, 
                                   annotation = anno, 

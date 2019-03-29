@@ -33,6 +33,7 @@ Imports:
     rlang,
     GenomicFiles
 Suggests: 
+    BiocStyle,
     knitr,
     rmarkdown
 VignetteBuilder: knitr
