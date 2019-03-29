@@ -1,17 +1,21 @@
 Package: exondiscovery
 Type: Package
 Title: Novel Exon Discovery And Annotation
-Version: 0.1.0
-Author: Katharina Hembach
-Maintainer: Katharina Hembach <katharina.hembach@uzh.ch>
-Description: Discovery of novel exons from RNA-seq data based on the SJ.out.tab 
-    file from STAR. The mapped splice-junctions are compared with the genome
-    annotation to discover novel exons.
-License: What license is it under?
+Version: 0.99.0
+Author: Katharina M. Hembach
+Maintainer: Katharina M. Hembach <katharina.hembach@uzh.ch>
+Authors@R: person("Katharina M.", "Hembach", email = "katharina.hembach@uzh.ch", 
+  role = c("aut", "cre"), comment = c(ORCID = "0000-0001-5041-6205"))
+Description: The exondiscovery package discovers novel exons from RNA-seq data
+    based on the SJ.out.tab and the BAM file from STAR. The mapped 
+    splice-junctions are compared with the genome annotation to discover novel 
+    exons. Existing genome annotations in GTF format can be extended with the 
+    predicted exons.
+License: GPL (>=2)
 URL: https://github.com/khembach/exondiscovery
 BugReports: https://github.com/khembach/exondiscovery/issues
 Encoding: UTF-8
-LazyData: true
+LazyData: TRUE
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
 Depends: R (>= 3.5.0)
