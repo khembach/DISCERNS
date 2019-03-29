@@ -6,3 +6,5 @@ inst/doc
 .DS_Store
 ._*
 *.Rproj
+.git
+.rapp.history
