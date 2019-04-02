@@ -22,11 +22,11 @@ filter_junction_reads <- function(bam, yield_size) {
   YIELD <- function(x, ...) {
     flag0 <- scanBamFlag(isProperPair = TRUE)
     param <- ScanBamParam(what = c("qname", "flag"), flag = flag0)
-    readGAlignments(bf, param = param)
+    readGAlignments(x, param = param)
   }
   
-  MAP <- function(reads, ...) {
-    reads <- reads[ cigarOpTable(cigar(reads))[ ,"N"] > 0, ]
+  MAP <- function(value, ...) {
+    reads <- value[ cigarOpTable(cigar(value))[ ,"N"] > 0, ]
     #We infer the read strand from the flag: our data comes from Illumina HiSeq
     #2000 (stranded TruSeq libary preparation with dUTPs ). Thus, the last read in
     #a pair determines the strand of the junction --> we reverse the strand of the
@@ -64,6 +64,62 @@ filter_junction_reads <- function(bam, yield_size) {
   
   ## If there are multiple files available, we can use bplapply to distribute the files to workers
 }
+
+
+## Parallel version of filter_junction_reads().
+## TODO: make it work (parallel is as slow as using 1 core)
+filter_junction_reads_parallel <- function(bam, yield_size, parallel = FALSE, cores = 1){
+  bf <- BamFile(bam, yieldSize = yield_size)
+  
+  YIELD <- function(x, ...) {
+    flag0 <- scanBamFlag(isProperPair = TRUE)
+    param <- ScanBamParam(what = c("qname", "flag"), flag = flag0)
+    readGAlignments(x, param = param)
+  }
+  
+  MAP <- function(value, ...) {
+    reads <- value[ cigarOpTable(cigar(value))[ ,"N"] > 0, ]
+    #We infer the read strand from the flag: our data comes from Illumina HiSeq
+    #2000 (stranded TruSeq libary preparation with dUTPs ). Thus, the last read in
+    #a pair determines the strand of the junction --> we reverse the strand of the
+    #first reads
+    bfbm <- bamFlagAsBitMatrix(mcols(reads)$flag,
+                               bitnames = c("isMinusStrand", "isFirstMateRead"))
+    mcols(reads)$isMinusStrand <- bfbm[ , "isMinusStrand"]
+    mcols(reads)$isFirstMateRead <- bfbm[ , "isFirstMateRead"]
+  
+    ## TODO: make sure that the strand of both reads is correct --> use a
+    ## parameter for the type of sequencing
+  
+    ## isMinusStrand==0 & isFirstMateRead==0 --> "+"
+    ## isMinusStrand==0 & isFirstMateRead==1 --> "-"
+    ## isMinusStrand==1 & isFirstMateRead==0 --> "-"
+    ## isMinusStrand==1 & isFirstMateRead==1 --> "+"
+    strand(reads) <- ifelse(mcols(reads)$isMinusStrand +
+                              mcols(reads)$isFirstMateRead == 0, "+",
+                            ifelse(mcols(reads)$isMinusStrand +
+                                     mcols(reads)$isFirstMateRead == 1, "-",
+                                   "+"))
+    as.data.table(reads)
+  
+  }
+
+  DONE <- function(value) {
+    length(value) == 0L
+  }
+  
+  REDUCE <- function(x, y, ...){
+    rbind(x, y)
+  }
+  
+  if (parallel) register(MulticoreParam(cores))
+  reduceByYield(bf, YIELD, MAP, REDUCE = REDUCE, DONE, parallel = parallel, iterate = TRUE)
+  
+  # a <- reduceByYield(bf, YIELD, MAP, REDUCE = REDUCE, DONE, parallel = parallel, iterate = TRUE)
+  # GAlignments(seqnames = a$seqnames, strand = a$strand, cigar = a$cigar, 
+  #             pos = a$start, qname = a$qname, flag = a$flag) 
+}  
+
 
 
 #' Predict novel exons from reads with 2 junctions
