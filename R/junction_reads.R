@@ -22,7 +22,7 @@ filter_junction_reads <- function(bam, yield_size) {
   YIELD <- function(x, ...) {
     flag0 <- scanBamFlag(isProperPair = TRUE)
     param <- ScanBamParam(what = c("qname", "flag"), flag = flag0)
-    readGAlignments(bf, param = param)
+    readGAlignments(x, param = param)
   }
   
   MAP <- function(reads, ...) {
@@ -54,12 +54,7 @@ filter_junction_reads <- function(bam, yield_size) {
   DONE <- function(value) {
     length(value) == 0L
   }
-  
-  ## The MAP step can run in parallel if parallel = TRUE, but only for Mac/Linux
-  # register(MulticoreParam(2))
-  # ulimit -s 16384  to increase allows stack
-  # Cstack_info()
-  ## TODO: this currently does not work: C stack usage too close to limit
+
   reduceByYield(bf, YIELD, MAP, REDUCE = c, DONE, parallel = FALSE)
   
   ## If there are multiple files available, we can use bplapply to distribute the files to workers
