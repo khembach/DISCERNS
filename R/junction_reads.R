@@ -9,6 +9,12 @@
 #'@param bam The path to the BAM file.
 #'@param yield_size Integer scalar. The number of reads that should be read in
 #'  each chunk.
+#'@param lib_type Character scalar. Type of the sequencing library: either "SE"
+#'  (single-end) or "PE" (paired-end). Default: "PE"
+#'@param stranded Character scalar. Strand type of the sequencing protocol:
+#'  "unstranded" for unstranded protocols; "forward" or "reverse" for stranded
+#'  protocols. "forward" refers to protocols where the first read comes from the
+#'  forward (sense) strand. Default: "reverse"
 #'
 #'@return GAlignments object with all junction reads from the bam file.
 #'@importFrom Rsamtools BamFile scanBamFlag bamFlagAsBitMatrix 
@@ -17,47 +23,90 @@
 #'
 #'@export
 #'
-filter_junction_reads <- function(bam, yield_size) {
+filter_junction_reads <- function(bam, yield_size = 200000, 
+                                  lib_type = "PE", stranded = "reverse") {
+  if (!lib_type %in% c("SE", "PE")) {
+    stop('Parameter lib_type has to be either "SE" or "PE".')
+  }
+  if (!stranded %in% c("unstranded", "forward", "reverse")) {
+    stop('Parameter stranded has to be one of "unstranded", "forward" or "reverse".')
+  }
   bf <- BamFile(bam, yieldSize = yield_size)
+  
   YIELD <- function(x, ...) {
     flag0 <- scanBamFlag(isProperPair = TRUE)
     param <- ScanBamParam(what = c("qname", "flag"), flag = flag0)
     readGAlignments(x, param = param)
   }
   
-  MAP <- function(reads, ...) {
+  YIELD_SE <- function(x, ...) {
+    param <- ScanBamParam(what = c("qname", "flag"))
+    readGAlignments(x, param = param)
+  }
+  
+  MAP <- function(reads, stranded, ...) {
     reads <- reads[ cigarOpTable(cigar(reads))[ ,"N"] > 0, ]
-    #We infer the read strand from the flag: our data comes from Illumina HiSeq
-    #2000 (stranded TruSeq libary preparation with dUTPs ). Thus, the last read in
-    #a pair determines the strand of the junction --> we reverse the strand of the
-    #first reads
     bfbm <- bamFlagAsBitMatrix(mcols(reads)$flag,
                                bitnames = c("isMinusStrand", "isFirstMateRead"))
     mcols(reads)$isMinusStrand <- bfbm[ , "isMinusStrand"]
     mcols(reads)$isFirstMateRead <- bfbm[ , "isFirstMateRead"]
-
-    ## TODO: make sure that the strand of both reads is correct --> use a
-    ## parameter for the type of sequencing
-
-    ## isMinusStrand==0 & isFirstMateRead==0 --> "+"
-    ## isMinusStrand==0 & isFirstMateRead==1 --> "-"
-    ## isMinusStrand==1 & isFirstMateRead==0 --> "-"
-    ## isMinusStrand==1 & isFirstMateRead==1 --> "+"
-    strand(reads) <- ifelse(mcols(reads)$isMinusStrand +
-                              mcols(reads)$isFirstMateRead == 0, "+",
-                            ifelse(mcols(reads)$isMinusStrand +
-                                     mcols(reads)$isFirstMateRead == 1, "-",
-                                   "+"))
+    
+    if (stranded == "forward") {
+      ## isMinusStrand==0 & isFirstMateRead==0 --> "-"
+      ## isMinusStrand==0 & isFirstMateRead==1 --> "+"
+      ## isMinusStrand==1 & isFirstMateRead==0 --> "+"
+      ## isMinusStrand==1 & isFirstMateRead==1 --> "-" 
+      strand(reads) <- ifelse(mcols(reads)$isMinusStrand +
+                                mcols(reads)$isFirstMateRead == 0, "-",
+                              ifelse(mcols(reads)$isMinusStrand +
+                                       mcols(reads)$isFirstMateRead == 1, "+",
+                                     "-"))
+      reads
+    } else {  # reverse
+      ## isMinusStrand==0 & isFirstMateRead==0 --> "+"
+      ## isMinusStrand==0 & isFirstMateRead==1 --> "-"
+      ## isMinusStrand==1 & isFirstMateRead==0 --> "-"
+      ## isMinusStrand==1 & isFirstMateRead==1 --> "+"
+      strand(reads) <- ifelse(mcols(reads)$isMinusStrand +
+                                mcols(reads)$isFirstMateRead == 0, "+",
+                              ifelse(mcols(reads)$isMinusStrand +
+                                       mcols(reads)$isFirstMateRead == 1, "-",
+                                     "+"))
+      reads
+    }
+  } 
+  
+  MAP_SE_REVERSE <- function(reads, ...) {
+    reads <- reads[ cigarOpTable(cigar(reads))[ ,"N"] > 0, ]
+    
+    bfbm <- bamFlagAsBitMatrix(mcols(reads)$flag, bitnames = c("isMinusStrand"))
+    mcols(reads)$isMinusStrand <- bfbm[ , "isMinusStrand"]
+    strand(reads) <- ifelse(mcols(reads)$isMinusStrand == 0, "-", "+")
     reads
+  }
+  
+  MAP_UNSTRANDED <- function(reads, ...) {
+    reads[ cigarOpTable(cigar(reads))[ ,"N"] > 0, ]
   }
   
   DONE <- function(value) {
     length(value) == 0L
   }
-
-  reduceByYield(bf, YIELD, MAP, REDUCE = c, DONE, parallel = FALSE)
   
-  ## If there are multiple files available, we can use bplapply to distribute the files to workers
+  if (lib_type == "PE") {
+    if( stranded == "unstranded") {
+      reduceByYield(bf, YIELD, MAP_UNSTRANDED, REDUCE = c, DONE, parallel = FALSE)
+    } else {
+      reduceByYield(bf, YIELD, MAP, REDUCE = c, DONE, parallel = FALSE, 
+                    stranded = stranded)
+    }
+  } else if (stranded != "reverse") { # SE
+    reduceByYield(bf, YIELD_SE, MAP_UNSTRANDED, REDUCE = c, DONE, 
+                  parallel = FALSE)
+  } else { 
+    reduceByYield(bf, YIELD_SE, MAP_SE_REVERSE, REDUCE = c, DONE, 
+                  parallel = FALSE)
+  }
 }
 
 
@@ -101,7 +150,7 @@ predict_jr_exon <- function(junc_reads, annotation) {
   cigar_junc_gr <- GRanges(seqnames(two_jr)[as.integer(names(cigar_junc_gr))],
                            cigar_junc_gr,
                            strand(two_jr)[as.integer(names(cigar_junc_gr))])
-
+  
   ## we join the read junctions with the annotated introns: start is the first
   ## nucleotide in the intron and end the last nucleotide (excluding exons)
   inbytx <- intronsByTranscript(annotation[["txdb"]], use.names = TRUE)
@@ -112,10 +161,10 @@ predict_jr_exon <- function(junc_reads, annotation) {
   #                    mcols(intr_gtf)$transcript_id)
   # intr_gtf<- intr_gtf[match(unique(intr_idx), intr_idx)]
   ##only keep the unique junction-transcript_id combinations
-
+  
   ## we compare the read junctions to annotated transcript introns
   olap <- findOverlaps(cigar_junc_gr, intr_gtf, type = "equal")
-
+  
   ## test is TRUE if there is a transcript that contains both junctions
   tmp <- data.frame(read = names(cigar_junc_gr)[queryHits(olap)],
                     tr = names(intr_gtf[subjectHits(olap)])) %>%
@@ -124,14 +173,14 @@ predict_jr_exon <- function(junc_reads, annotation) {
     ungroup() %>%
     group_by(.data$read) %>%
     summarise(test = any(.data$n == 2))
-
+  
   read_id <- tmp %>%
     filter(.data$test == TRUE) %>%
     pull(.data$read) ## all reads that are already annotated
-
+  
   ## all reads with junctions that are not annotated in a transcripts
   cigar_junc_gr_pred <- cigar_junc_gr[!names(cigar_junc_gr) %in% read_id, ]
-
+  
   novel_reads <-  as.data.table(cigar_junc_gr_pred) %>%
     mutate(names = names(cigar_junc_gr_pred))
   novel_reads <- novel_reads[order(novel_reads$start), ]
@@ -140,23 +189,23 @@ predict_jr_exon <- function(junc_reads, annotation) {
     summarise(lend = nth(start - 1, 1), start1 = nth(end + 1, 1),
               end1 = nth(start - 1, 2), rstart = nth(end + 1, 2),
               seqnames = unique(seqnames), strand = unique(strand))
-
+  
   ## TODO: only keep predictions with >- x supporting reads
   read_pred <- read_pred %>%
     select(-names) %>%
     rename(start = .data$start1, end = .data$end1) %>%
     unique()
-
+  
   ## keep all predictions where the exon itself is not annotated
   read_pred <- as.data.frame(subsetByOverlaps(
     GRanges(read_pred), annotation[["exons"]], type = "equal", invert = TRUE))
   read_pred <- read_pred %>% select(-width)
-
+  
   ### Keep all exons that are located within gene boundaries
   read_pred <- read_pred[
     unique(queryHits(findOverlaps(
       GRanges(read_pred$seqnames, IRanges(read_pred$lend, read_pred$rstart),
-      read_pred$strand ),
+              read_pred$strand ),
       genes(annotation[["txdb"]]), type = "within"))), ]
   read_pred
 }
@@ -192,27 +241,27 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #' @importFrom rlang .data
 #' @importFrom dplyr distinct group_by summarise filter pull nth select rename
 #'   ungroup n
-#' @importFrom data.table as.data.table
+#' @importFrom data.table as.data.table :=
 #'
 #' @export
 #'
 predict_jrp_exon <- function(junc_reads, annotation) {
   junc_rp <- junc_reads[njunc(junc_reads) == 1, ]
   junc_rp <- junc_rp[duplicated(mcols(junc_rp)$qname) | duplicated(mcols(junc_rp)$qname,
-                                                            fromLast = TRUE), ]
+                                                                   fromLast = TRUE), ]
   
   ## keep all reads pairs where the junctions are already annotated
   cigar_jp <- cigarRangesAlongReferenceSpace(cigar = cigar(junc_rp), 
                                              flag = mcols(junc_rp)$flag,
                                              pos = start(junc_rp),
                                              ops = "N")
-
+  
   names(cigar_jp) <- mcols(junc_rp)$qname
   cigar_jp <- as.data.table(unlist(cigar_jp))
   m <- match(cigar_jp$names, mcols(junc_rp)$qname)
   cigar_jp[ , ':=' (seqnames = as.character(seqnames(junc_rp)[m]),
                     strand = as.character(strand(junc_rp)[m]))]
-
+  
   ## remove all duplicate junctions within one read pair and only keep the read
   ## pairs with two different junctions
   cigar_jp <- cigar_jp %>% distinct
@@ -222,7 +271,7 @@ predict_jrp_exon <- function(junc_reads, annotation) {
     filter(.data$n == 2) %>%
     pull(.data$names)
   cigar_jp <- cigar_jp %>% filter(.data$names %in% two_junc_pairs)
-
+  
   ## TODO: make this flexible for other read lengths and parameters
   max_pairs_exon_len <- 211
   x <- cigar_jp %>%
@@ -233,10 +282,10 @@ predict_jrp_exon <- function(junc_reads, annotation) {
     pull(.data$names)
   cigar_jp <- cigar_jp[cigar_jp$names %in% x, ]
   cigar_jp_gr <- GRanges(cigar_jp)
-
+  
   inbytx <- intronsByTranscript(annotation[["txdb"]], use.names = TRUE)
   intr_gtf <- unlist(inbytx)
-
+  
   ## Keep all reads with annotated junctions
   ## names of all reads with unannotated junctions
   x <- mcols(cigar_jp_gr)$names[-unique(queryHits(findOverlaps(cigar_jp_gr,
@@ -254,14 +303,14 @@ predict_jrp_exon <- function(junc_reads, annotation) {
     ungroup() %>%
     group_by(.data$read) %>%
     summarise(test = any(.data$n == 2))
-
+  
   read_id <- tmp %>%
     filter(.data$test == FALSE) %>%
     pull(.data$read)
-
+  
   cigar_jp_gr_pred <- cigar_jp_gr[mcols(cigar_jp_gr)$names %in% read_id, ]
   novel_reads <- as.data.table(cigar_jp_gr_pred)
-
+  
   ## predict the novel exons based on the novel junctions
   novel_reads <- novel_reads[order(novel_reads$start), ]
   read_pairs_pred <- novel_reads %>% group_by(names) %>%
@@ -272,7 +321,7 @@ predict_jrp_exon <- function(junc_reads, annotation) {
     select(-names) %>%
     rename(start = .data$start1, end = .data$end1) %>%
     unique()
-
+  
   ## Keep all predictions, where the exon itself is not jet annotated
   read_pairs_pred <- as.data.frame(subsetByOverlaps(GRanges(read_pairs_pred),
                                                     annotation[["exons"]],

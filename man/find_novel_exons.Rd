@@ -6,7 +6,8 @@
 \usage{
 find_novel_exons(sj_filename, annotation, min_unique = 1,
   gzipped = FALSE, verbose = TRUE, bam, single_sj = TRUE,
-  read_based = TRUE, yield_size = 2e+05)
+  read_based = TRUE, yield_size = 2e+05, lib_type = "PE",
+  stranded = "reverse")
 }
 \arguments{
 \item{sj_filename}{Path to SJ.out.tab file.}
@@ -30,6 +31,15 @@ used for prediction? Requires a BAM file.}
 reads or read-pairs with two novel splice junctions? Requires a BAM file.}
 
 \item{yield_size}{Integer scalar. Read the BAM file in chunks of this size.}
+
+\item{lib_type}{Character scalar. Type of the sequencing library: either "SE"
+(single-end) or "PE" (paired-end); default "PE".}
+
+\item{stranded}{Character scalar. Strand type of the sequencing protocol:
+"unstranded" for unstranded protocols; "forward" or "reverse" for stranded
+protocols. "forward" refers to protocols where the first read comes from the
+forward (sense) strand; default "reverse". See the \href{https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype}{Salmon documentation}
+for an explanation of the different fragment library types.}
 }
 \value{
 Data.frame with the coordinates of the identified novel exons. Each
@@ -123,22 +133,22 @@ already annotated SJs. The SJ pairs are defined by a single read with two SJs
 or by read pairs where each read spans one junction. Each of the SJ pairs are
 compared with the annotated SJs per transcript and already annotated SJ pairs
 are removed.
-For paired-end reads, there is an additional requirement: The distance
-between the end of the first read in a pair and the start of the second read
-has to has to be \code{< 2*(readlength-minOverhang) + minIntronSize}. Here,
+For paired-end reads, there is an additional requirement: The distance between
+the end of the first read in a pair and the start of the second read has to
+has to be \code{< 2*(readlength-minOverhang) + minIntronSize}. Here,
 \code{readlength} is the length of the reads, \code{minOverhang} is the minmal required
 read overhang over a SJ of the alignment tool and \code{minIntronSize} is the
 minimal required intron length of the alignment tool. For example, paired-end
 reads with a lenght of 101 nts and a minimal overhang of 6 and a minimal
 intron length of 21 allow a distance of at most 211 nucleotides between the
-two SJs: 2*(101-6) + 21 = 211. If the distance between the two SJs exceeds
-the limit, it cannot be guaranteed that the junctions are connected to the
-same exon.
+two SJs: 2*(101-6) + 21 = 211. If the distance between the two SJs exceeds the
+limit, it cannot be guaranteed that the junctions are connected to the same
+exon.
 
 Novel exons are then predicted from novel combinations of the identified SJ
-pairs. A novel exon is only predicted if it is contained within the
-boundaries of an annotated gene. This prevents the prediction of false
-positive exons because of wrongly mapped reads.
+pairs. A novel exon is only predicted if it is contained within the boundaries
+of an annotated gene. This prevents the prediction of false positive exons
+because of wrongly mapped reads.
 }
 \examples{
 sj <- system.file("extdata", "selected.SJ.out.tab",
@@ -173,6 +183,23 @@ find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 
 ## increase chunk size for BAM file reading if lots of memory is available
 find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
-                 bam = bam, yieldSize = 1000000)
+                 bam = bam, yield_size = 1000000)
+
+## Stranded single-end reads from the forward strand (sense)
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+                 bam = bam, lib_type = "SE", stranded = "forward")
+
+## Stranded paired-end reads where the first read comes from the forward strand
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+                 bam = bam, lib_type = "PE", stranded = "forward")
+
+## Stranded paired-end reads where the first read comes from the reverse
+## strand, e.g., Illumina TruSeq stranded mRNA protocol. This is the default.
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+                 bam = bam, lib_type = "PE", stranded = "reverse")
+
+## Unstranded single-end reads
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+                 bam = bam, lib_type = "SE", stranded = "unstranded")
 
 }
