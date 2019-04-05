@@ -201,14 +201,6 @@ find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
                  bam = bam, yield_size = 1000000)
 
-## Stranded single-end reads from the forward strand (sense)
-find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
-                 bam = bam, lib_type = "SE", stranded = "forward")
-
-## Stranded paired-end reads where the first read comes from the forward strand
-find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
-                 bam = bam, lib_type = "PE", stranded = "forward")
-
 ## Stranded paired-end reads where the first read comes from the reverse
 ## strand, e.g., Illumina TruSeq stranded mRNA protocol. This is the default.
 find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
@@ -217,5 +209,11 @@ find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 ## Unstranded single-end reads
 find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
                  bam = bam, lib_type = "SE", stranded = "unstranded")
-
+                 
+If STAR was run with parameter --outSJfilterOverhangMin (e.g.
+--outSJfilterOverhangMin 30 6 6 6), specify the minimal junction overhang
+with parameter overhang_min: 
+find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
+                 bam = bam, overhang_min = 6)
+                 
 }
