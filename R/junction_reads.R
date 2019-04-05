@@ -216,9 +216,9 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #' Novel exons are predicted from paired-end reads where each read spans one
 #' splice junction. First, the read pairs are filtered and the distance between
 #' the end of the first junction and the start of the second junction has to be
-#' `< 2*(readlength-minOverhang) + minIntronSize`. Here, `readlength` is the length
-#' of the reads, `minOverhang` is the minmal required read overhang over a splice
-#' junction of the alignment tool and `minIntronSize` is the minimal required
+#' `< 2*(read_length-overhang_min) + min_intron_size`. Here, `readlength` is the length
+#' of the reads, `overhang_min` is the minmal required read overhang over a splice
+#' junction of the alignment tool and `min_intron_size` is the minimal required
 #' intron length of the alignment tool. For example, paired-end reads with a
 #' lenght of 101 nts and a minimal overhang of 6 and a minimal intron length of
 #' 21 allow a distance of at most 211 nucleotides between the two splice
@@ -229,8 +229,17 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #' splice junction pairs.
 #'
 #' @param annotation List with exon and intron annotation as GRanges. Created
-#'   with prepare_annotation().
+#'   with [prepare_annotation()].
 #' @param junc_reads GAlignments object with junction read.
+#' @param read_length Integer scalar. Length of your reads in bps. Default 101.
+#' @param overhang_min Integer scalar. Minimum overhang length for splice
+#'   junctions on both sides as defined by the `--outSJfilterOverhangMin`
+#'   parameter of STAR. Use the minimum of values for canonical splice junctions
+#'   (value (2) to (4)). You do not have to set this parameter if you used the
+#'   default values from STAR. Default 12.
+#' @param min_intron_size Integer scalar. Minimum intron size
+#'   (`--alignIntronMin` parameter of STAR). You do not have to set this
+#'   parameter if you used the default values from STAR. Default 21.
 #'
 #' @return data.frame with the coordinates of the predicted novel exon. It has 6
 #'   columns: `seqnames`, `lend`, `start`, `end`, `rstart` and `strand`.
@@ -245,7 +254,9 @@ predict_jr_exon <- function(junc_reads, annotation) {
 #'
 #' @export
 #'
-predict_jrp_exon <- function(junc_reads, annotation) {
+predict_jrp_exon <- function(junc_reads, annotation, 
+                             read_length = 101, overhang_min = 12, 
+                             min_intron_size = 21) {
   junc_rp <- junc_reads[njunc(junc_reads) == 1, ]
   junc_rp <- junc_rp[duplicated(mcols(junc_rp)$qname) | duplicated(mcols(junc_rp)$qname,
                                                                    fromLast = TRUE), ]
@@ -272,8 +283,8 @@ predict_jrp_exon <- function(junc_reads, annotation) {
     pull(.data$names)
   cigar_jp <- cigar_jp %>% filter(.data$names %in% two_junc_pairs)
   
-  ## TODO: make this flexible for other read lengths and parameters
-  max_pairs_exon_len <- 211
+  max_pairs_exon_len <- 2*(read_length - overhang_min) + min_intron_size
+
   x <- cigar_jp %>%
     group_by(.data$names) %>%
     select(.data$names, .data$start, .data$end) %>%

@@ -112,6 +112,15 @@
 #'  forward (sense) strand; default "reverse". See the [Salmon
 #'  documentation](https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype)
 #'  for an explanation of the different fragment library types.
+#' @param read_length Integer scalar. Length of your reads in bps. Default 101.
+#' @param overhang_min Integer scalar. Minimum overhang length for splice
+#'   junctions on both sides as defined by the `--outSJfilterOverhangMin`
+#'   parameter of STAR. Use the minimum of the values for canonical splice junctions
+#'   (value (2) to (4)). You do not have to set this parameter if you used the
+#'   default values from STAR. Default 12.
+#' @param min_intron_size Integer scalar. Minimum intron size
+#'   (`--alignIntronMin` parameter of STAR). You do not have to set this
+#'   parameter if you used the default values from STAR. Default 21.
 #'
 #'@return Data.frame with the coordinates of the identified novel exons. Each
 #'  row in the data.frame is a predicted novel exon. The columns are the
@@ -189,7 +198,9 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                              gzipped = FALSE, verbose = TRUE, bam,
                              single_sj = TRUE, read_based = TRUE, 
                              yield_size = 200000, 
-                             lib_type = "PE", stranded = "reverse") {
+                             lib_type = "PE", stranded = "reverse", 
+                             read_length = 101, overhang_min = 12, 
+                             min_intron_size = 21) {
   
   if (!lib_type %in% c("SE", "PE")) {
     stop('Parameter lib_type has to be either "SE" or "PE"')
@@ -213,11 +224,6 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   
   #strand: (0: undefined, 1: +, 2: -)
   sj$strand <- c("*", "+", "-")[sj$strand + 1]
-  
-  ### TODO: create functions for the different prediction "types"
-  ## 1) casette exons 2) predictions from single novel SJ
-  ## 3) predictions from reads or read pairs with 2 SJ
-  ## let the user decide which ones to run
   
   ## ============= junction prefiltering ============= #
   if (verbose) message("Prefiltering splice junctions")
@@ -308,16 +314,20 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     }
     
     ## ======= Predict novel exons from read pairs with each one junction =======
-    if (verbose) message("Predict novel exons from read pairs with each 1 junction")
-    
-    read_pair_pred <- predict_jrp_exon(junc_reads, annotation)
-    combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
-    novel_exons <- full_join(mutate(read_pair_pred,
-                                    strand = factor(strand, levels = combined)),
-                             mutate(novel_exons,
-                                    strand = factor(strand, levels = combined)),
-                             by = c("seqnames", "start", "end", "strand", 
-                                    "lend", "rstart"))
+    if (lib_type == "PE") {
+      if (verbose) message("Predict novel exons from read pairs with each 1 junction")
+      read_pair_pred <- predict_jrp_exon(junc_reads, annotation, 
+                                         read_length = read_length, 
+                                         overhang_min = overhang_min, 
+                                         min_intron_size = min_intron_size)
+      combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
+      novel_exons <- full_join(mutate(read_pair_pred,
+                                      strand = factor(strand, levels = combined)),
+                               mutate(novel_exons,
+                                      strand = factor(strand, levels = combined)),
+                               by = c("seqnames", "start", "end", "strand", 
+                                      "lend", "rstart"))
+    }
   }
   
   ## ============ Compute minimal junction read coverage ===========

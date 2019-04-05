@@ -7,7 +7,8 @@
 find_novel_exons(sj_filename, annotation, min_unique = 1,
   gzipped = FALSE, verbose = TRUE, bam, single_sj = TRUE,
   read_based = TRUE, yield_size = 2e+05, lib_type = "PE",
-  stranded = "reverse")
+  stranded = "reverse", read_length = 101, overhang_min = 12,
+  min_intron_size = 21)
 }
 \arguments{
 \item{sj_filename}{Path to SJ.out.tab file.}
@@ -40,6 +41,18 @@ reads or read-pairs with two novel splice junctions? Requires a BAM file.}
 protocols. "forward" refers to protocols where the first read comes from the
 forward (sense) strand; default "reverse". See the \href{https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype}{Salmon documentation}
 for an explanation of the different fragment library types.}
+
+\item{read_length}{Integer scalar. Length of your reads in bps. Default 101.}
+
+\item{overhang_min}{Integer scalar. Minimum overhang length for splice
+junctions on both sides as defined by the \code{--outSJfilterOverhangMin}
+parameter of STAR. Use the minimum of the values for canonical splice junctions
+(value (2) to (4)). You do not have to set this parameter if you used the
+default values from STAR. Default 12.}
+
+\item{min_intron_size}{Integer scalar. Minimum intron size
+(\code{--alignIntronMin} parameter of STAR). You do not have to set this
+parameter if you used the default values from STAR. Default 21.}
 }
 \value{
 Data.frame with the coordinates of the identified novel exons. Each
