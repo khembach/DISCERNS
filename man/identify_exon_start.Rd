@@ -7,16 +7,16 @@
 identify_exon_start(r, j_start, j_end, j_seqnames, j_strand)
 }
 \arguments{
-\item{r}{GAlignment object with reads that contain the novel splice
+\item{r}{GAlignments object with reads that contain the novel splice
 junction.}
 
-\item{j_start}{Integer start of the splice junction.}
+\item{j_start}{Integer scalar. Start of the splice junction.}
 
-\item{j_end}{Integer end of the splice junction.}
+\item{j_end}{Integer scalar. End of the splice junction.}
 
-\item{j_seqnames}{Factor seqname of the splice junction.}
+\item{j_seqnames}{Factor scalar. seqname of the splice junction.}
 
-\item{j_strand}{Factor strand of the splice junction.}
+\item{j_strand}{Factor scalar. Strand of the splice junction.}
 }
 \value{
 data.frame with the coordinates of the predicted exon(s)

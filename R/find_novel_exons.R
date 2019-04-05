@@ -129,17 +129,17 @@
 #'  chromosome (`seqnames`), the end of the upstream exon (`lend`) in the
 #'  transcript, the start and end of the novel exon (`start` and `end`), the
 #'  start of the downstream exon (`rstart`) in the transcript and the strand
-#'  (`strand`). The last three columns are the number of reads supporting each
+#'  (`strand`). The next three columns are the number of reads supporting each
 #'  of the two splice junctions that define the novel exon: `unique_left` is the
 #'  number of reads supporting the SJ from `lend` to `start` and `unique_right`
 #'  is the number of supporting reads for the SJ from `end` to `rstart`.
-#'  `min_reads` is the minimum of the two.
+#'  `min_reads` is the minimum of the two. The last column is the ID (`ID`) of
+#'  the novel exon, i.e. a number between 1 and the total number of predictions.
 #'
 #'@importFrom data.table fread
 #'@import GenomicRanges
 #'@import IRanges
 #'@importFrom S4Vectors queryHits subjectHits
-#'@importFrom GenomicFeatures genes exonsBy
 #'@importFrom dplyr full_join mutate
 #'
 #'@export
@@ -265,9 +265,6 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     }
     reads <- import_novel_sj_reads(bam, sj_unann)
     
-    ebyTr <- exonsBy(annotation[["txdb"]], by = "tx", use.names = TRUE)
-    gtxdb <- genes(annotation[["txdb"]])
-    
     ## convert GRanges to data.frame otherwise we cannot use apply functions
     sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
     
@@ -280,8 +277,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     sj_unann <- sj_unann[!is.na(touching), ]
     
     res <- identify_exon_from_sj(sj_unann, reads = reads,
-                                 txdb = annotation[["txdb"]],
-                                 gtxdb = gtxdb, ebyTr = ebyTr)
+                                 txdb = annotation[["txdb"]])
     
     novel_exons <- rbind(novel_exons, res)
     

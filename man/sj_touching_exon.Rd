@@ -7,15 +7,17 @@
 sj_touching_exon(seqnames, start, end, strand, exons)
 }
 \arguments{
-\item{seqnames}{String: splice junction seqname.}
+\item{seqnames}{Character string or factor. Seqnames (chromosome) of the
+splice junction.}
 
-\item{start}{Integer: start of splice junction.}
+\item{start}{Integer scalar. Start of the splice junction.}
 
-\item{end}{Integer: end of splice junction.}
+\item{end}{Integer scalar. End of the splice junction.}
 
-\item{strand}{Factor: strand of splice junction ("-" or "+").}
+\item{strand}{Character string or factor. Strand of the splice junction ("-"
+or "+").}
 
-\item{exons}{Exon annotation as GRanges.}
+\item{exons}{GRanges object. Annotated exons.}
 }
 \value{
 A string that defines which side of the splice junction is touching

@@ -7,22 +7,25 @@
 which_exon_terminal(j, txdb = txdb, gtxdb = gtxdb, ebyTr = ebyTr)
 }
 \arguments{
-\item{j}{Novel splice junction as GRange.}
+\item{j}{GRanges object. Novel splice junction.}
 
-\item{txdb}{\code{TxDb} object, e.g. the txdb slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
+\item{txdb}{TxDb object, e.g. the "txdb" slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
 
-\item{gtxdb}{All genes from the TxDB object.}
+\item{gtxdb}{GRanges object. All genes from the txdb parameter, e.g. obtained
+with \code{GenomicFeatures::genes(txdb)}.}
 
-\item{ebyTr}{All exons from the TxDB object per transcript.}
+\item{ebyTr}{GRangesList object. All exons per transcript of the txdb
+parameter, e.g. obtained with \code{GenomicFeatures::exonsBy(txdb, by = "tx", use.names = TRUE)}.}
 }
 \value{
-Scalar with either "start", "end" or "NA"
+Character string; either "start", "end" or "NA".
 }
 \description{
 This function computes if a splice junction (SJ) splices to a terminal exons.
 If the exon at the start of the SJ is terminal, the function returns "start",
-"end" if it is the exon at the end and "NA" if none of the exons are terminal
+"end" if it is the exon at the end and "NA" if none of the exons are
+terminal.
 }
 \section{Details}{
 

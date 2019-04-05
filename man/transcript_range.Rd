@@ -2,17 +2,17 @@
 % Please edit documentation in R/exon_discovery_utils.R
 \name{transcript_range}
 \alias{transcript_range}
-\title{GRanges of a transcript}
+\title{Transcript range}
 \usage{
 transcript_range(gr)
 }
 \arguments{
-\item{gr}{GRanges object with all exons in a transcript.}
+\item{gr}{GRanges object. All exons of a transcript.}
 }
 \value{
-GRange with start and end of the transcript.
+GRanges object with the start and end of the transcript.
 }
 \description{
-This function returns a GRange for a transcript given as a set of exons in a
-GRanges object.
+This function returns a GRanges object with the start and end of a transcript
+and takes a GRanges object with the transcript's exons as input.
 }

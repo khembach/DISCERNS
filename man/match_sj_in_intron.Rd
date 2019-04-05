@@ -7,9 +7,9 @@
 match_sj_in_intron(s, e)
 }
 \arguments{
-\item{s}{Junctions from the start of the intron as GRanges.}
+\item{s}{GRanges object. Junctions from the start of the intron.}
 
-\item{e}{Junctions from the end of the intron as GRanges.}
+\item{e}{GRanges object. Junctions from the end of the intron.}
 }
 \value{
 A vector with the seqnames, end of the preceding exon, start of the

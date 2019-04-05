@@ -15,12 +15,14 @@ novel SJ.}
 
 \item{j}{data.frame with one row: the novel splice junction.}
 
-\item{txdb}{TxDb object, e.g. the txdb slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
+\item{txdb}{TxDb object, e.g. the "txdb" slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
 
-\item{gtxdb}{GRanges: All genes from the TxDB object.}
+\item{gtxdb}{GRanges object. All genes from the txdb parameter, e.g. obtained
+with \code{GenomicFeatures::genes(txdb)}.}
 
-\item{ebyTr}{GRanges: All exons from the TxDB object per transcript.}
+\item{ebyTr}{GRangesList object. All exons per transcript of the txdb
+parameter, e.g. obtained with \code{GenomicFeatures::exonsBy(txdb, by = "tx", use.names = TRUE)}.}
 }
 \value{
 data.frame with exon predictions, NULL if ambiguous or there are no

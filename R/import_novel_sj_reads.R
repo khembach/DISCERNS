@@ -6,8 +6,8 @@
 #' junctions as input and returns a GAlignments object with all reads from the
 #' BAM file that contain any of the novel splice junctions.
 #'
-#' @param bam The path to the BAM file.
 #' @param sj_unann GRanges object with unannotated splice junctions.
+#' @inheritParams find_novel_exons
 #'
 #' @return GAlignments object with all reads from the BAM file that contain a
 #'   novel splice junctions.

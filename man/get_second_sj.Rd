@@ -7,20 +7,24 @@
 get_second_sj(junctions, reads, touching, txdb, gtxdb, ebyTr)
 }
 \arguments{
-\item{junctions}{data.frame with novel splice junctions.}
+\item{junctions}{data.frame with novel splice junctions. Following columns
+are required: \code{seqnames}, \code{start}, \code{end} and \code{strand}.}
 
-\item{reads}{GAlignment object with reads that contain novel splice
-junctions.}
+\item{reads}{GAlignments object. Reads that contain novel splice
+junctions, e.g. obtained with import_novel_sj_reads().}
 
-\item{touching}{string defining which end of the novel splice junction
-touches an annotated exon.}
+\item{touching}{Character string. Which end of the novel splice junctions
+(parameter junctions) touches an annotated exon? One of "both", "start" or
+"end".}
 
-\item{txdb}{TxDb object, e.g. the txdb slot from the prepare_annotation()
+\item{txdb}{TxDb object, e.g. the "txdb" slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
 
-\item{gtxdb}{GRanges: All genes from the \code{TxDB} object.}
+\item{gtxdb}{GRanges object. All genes from the txdb parameter, e.g. obtained
+with \code{GenomicFeatures::genes(txdb)}.}
 
-\item{ebyTr}{GRanges: All exons from the \code{TxDB} object per transcript.}
+\item{ebyTr}{GRangesList object. All exons per transcript of the txdb
+parameter, e.g. obtained with \code{GenomicFeatures::exonsBy(txdb, by = "tx", use.names = TRUE)}.}
 }
 \value{
 data.frame with the coordinates of the novel exon. It has 6 columns:

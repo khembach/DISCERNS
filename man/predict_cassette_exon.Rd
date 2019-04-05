@@ -9,14 +9,14 @@ predict_cassette_exon(sj_unann, introns)
 \arguments{
 \item{sj_unann}{GRanges object with unannotated splice junctions.}
 
-\item{introns}{GRanges object with intron annotations, e.g. the "introns" slot
-from the \code{\link[=prepare_annotation]{prepare_annotation()}} return object.}
+\item{introns}{GRanges object. Intron annotations, e.g. the "introns" slot
+from the object returned by \code{\link[=prepare_annotation]{prepare_annotation()}}.}
 }
 \value{
-List with two slots: "ne" is a data.frame with the coordinates of
-the identifies cassette exons. It has 6 columns: \code{seqnames}, \code{lend}, \code{start},
-\code{end}, \code{rstart} and \code{strand}.. "sj" is a GRanges object with the SJs from
-sj_unann that were not used to predict a cassette exons.
+List with two slots: "ne" is a data.frame with the coordinates of the
+identifies cassette exons. It has 6 columns: \code{seqnames}, \code{lend}, \code{start},
+\code{end}, \code{rstart} and \code{strand}. "sj" is a GRanges object with the SJs from
+the parameter sj_unann that were not used to predict cassette exons.
 }
 \description{
 Novel cassette exons are predicted from pairs of novel splice junctions (SJ)

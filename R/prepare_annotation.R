@@ -2,10 +2,10 @@
 #'
 #' Read exon and intron annotation from a GTF file.
 #'
-#' @param GTF Path to GTF file.
+#' @param gtf_file Character string. Path to a GTF file.
 #'
 #' @return List with exon and intron annotations as GRanges and the `TxDB`
-#'   object.
+#'   object. The slots are `exons`, `introns` and `txdb`.
 #'
 #' @importFrom rtracklayer import
 #' @importFrom GenomicFeatures makeTxDbFromGRanges intronsByTranscript
@@ -17,9 +17,9 @@
 #'                    mustWork = TRUE)
 #' anno <- prepare_annotation(gtf)
 #' names(anno)
-prepare_annotation <- function(GTF) {
+prepare_annotation <- function(gtf_file) {
 
-  gtf <- import(GTF)
+  gtf <- import(gtf_file)
   exons <- gtf[mcols(gtf)$type =="exon", ]
 
   txdb <- makeTxDbFromGRanges(exons)

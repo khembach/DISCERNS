@@ -7,19 +7,20 @@
 get_transcripts(seqn, lend, start, end, rstart, strand, exons)
 }
 \arguments{
-\item{seqn}{Scalar, seqname of the novel exon.}
+\item{seqn}{Character string or factor. seqname of the novel exon.}
 
-\item{lend}{Integer scalar, end of the upstream exon.}
+\item{lend}{Integer scalar. End of the upstream exon.}
 
-\item{start}{Integer scalar, start of the novel exon.}
+\item{start}{Integer scalar. Start of the novel exon.}
 
-\item{end}{Integer scalar, end of the novel exon.}
+\item{end}{Integer scalar. End of the novel exon.}
 
-\item{rstart}{Integer scalar, start of the downstream exon.}
+\item{rstart}{Integer scalar. Start of the downstream exon.}
 
-\item{strand}{Factor scalar, strand of the novel exon (either "+" or "-").}
+\item{strand}{Character string or factor. Strand of the novel exon (either
+"+" or "-").}
 
-\item{exons}{GRanges object with exon annotations.}
+\item{exons}{GRanges object. Exon annotations from a GTF file.}
 }
 \value{
 Character vector with transcript IDs.

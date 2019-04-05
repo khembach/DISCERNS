@@ -2,7 +2,7 @@
 #' Count mapped parts in a read from max-1 to 0 in the most downstream part
 #' (from 5' to 3')
 #'
-#' @param x GRangesList object with mapped parts of reads.
+#' @inheritParams upstream_count
 #'
 #' @return data.frame with the range of each mapped part and the nr of each part
 #'   from max-1 to 0 (most downstream part in the read)
@@ -23,19 +23,14 @@ downstream_count <- function(x) {
 #' longest mapped part as an approximation for the coordinates of the novel
 #' exon (it probably is a terminal exon).
 #'
-#' @param r GAlignment object with reads that contain the novel splice
-#'   junction.
-#' @param j_start Integer: start of the splice junction.
-#' @param j_end Integer: end of the splice junction.
-#' @param j_seqnames Factor: seqname of the splice junction.
-#' @param j_strand Factor: strand of the splice junction.
+#' @inheritParams identify_exon_start
 #'
 #' @return data.frame with the coordinates of the predicted exon(s).
 #' @export
 #'
 identify_exon_end <- function(r, j_start, j_end, j_seqnames, j_strand) {
   r_ranges <- dplyr::bind_rows(lapply(r, downstream_count))
-
+  
   sj_hit <- which(r_ranges$start == j_end + 1)
   sj_hit_downstream <- sj_hit[sj_hit %in% which(r_ranges$nr > 0)] + 1
   if (length(sj_hit_downstream) > 0) {
@@ -62,7 +57,7 @@ identify_exon_end <- function(r, j_start, j_end, j_seqnames, j_strand) {
 
 #' Count mapped parts in a read from 1 to max (from 5' to 3')
 #'
-#' @param x GRangesList object with mapped parts of reads.
+#' @param x GRangesList object with the mapped parts of a read.
 #'
 #' @return data.frame with the range of each mapped part and the nr of each part
 #'   from  1 to max (from 5' to 3').
@@ -82,19 +77,20 @@ upstream_count <- function(x) {
 #' If there are no reads with a second upstream SJ, take the range of the
 #' longest mapped part as an approximation for the coordinates of the novel
 #' exon (it probably is a terminal exon).
-#' @param r GAlignment object with reads that contain the novel splice
+#' 
+#' @param r GAlignments object with reads that contain the novel splice
 #'   junction.
-#' @param j_start Integer start of the splice junction.
-#' @param j_end Integer end of the splice junction.
-#' @param j_seqnames Factor seqname of the splice junction.
-#' @param j_strand Factor strand of the splice junction.
+#' @param j_start Integer scalar. Start of the splice junction.
+#' @param j_end Integer scalar. End of the splice junction.
+#' @param j_seqnames Factor scalar. seqname of the splice junction.
+#' @param j_strand Factor scalar. Strand of the splice junction.
 #'
 #' @return data.frame with the coordinates of the predicted exon(s)
 #' @export
 #'
 identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
   r_ranges <- dplyr::bind_rows(lapply(r, upstream_count))
-
+  
   sj_hit <- which(r_ranges$end == j_start - 1)
   sj_hit_upstream <- sj_hit[r_ranges$nr[sj_hit] > 1]
   if (length(sj_hit_upstream) > 0) {
@@ -106,14 +102,14 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
                       rstart = j_end + 1,
                       strand = j_strand))
   } else {
-  ## If there are no reads with a second junction, we take the longest mapped
-  ## range.
-  data.frame(seqnames = j_seqnames,
-             lend = NA,
-             start = min(r_ranges$start[sj_hit]),
-             end = j_start - 1,
-             rstart = j_end + 1,
-             strand = j_strand)
+    ## If there are no reads with a second junction, we take the longest mapped
+    ## range.
+    data.frame(seqnames = j_seqnames,
+               lend = NA,
+               start = min(r_ranges$start[sj_hit]),
+               end = j_start - 1,
+               rstart = j_end + 1,
+               strand = j_strand)
   }
 }
 
@@ -130,11 +126,8 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
 #'   novel SJ.
 #' @param end_coords data.frame with exon predictions at the end of the novel SJ.
 #' @param j data.frame with one row: the novel splice junction.
-#' @param txdb TxDb object, e.g. the txdb slot from the [prepare_annotation()]
-#'   return object.
-#' @param gtxdb GRanges: All genes from the TxDB object.
-#' @param ebyTr GRanges: All exons from the TxDB object per transcript.
-#'
+#' @inheritParams get_second_sj
+#' 
 #' @return data.frame with exon predictions, NULL if ambiguous or there are no
 #'   supporting reads
 #' @export
@@ -146,12 +139,12 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
   if (any(!s_na)) {
     if (any(!e_na)) {
       dplyr::bind_rows(start_coords[!is.na(s_na), ],
-                        end_coords[!is.na(e_na), ])
+                       end_coords[!is.na(e_na), ])
     } else {
       start_coords[!is.na(s_na), ]
     }
   } else if (any(!e_na)) {
-      end_coords[!is.na(e_na), ]
+    end_coords[!is.na(e_na), ]
   } else { ## terminal exon?
     terminal <- which_exon_terminal(GRanges(j), txdb = txdb, gtxdb = gtxdb,
                                     ebyTr = ebyTr)
@@ -205,15 +198,18 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
 #' on that end and thus we cannot determine the end coordinate of the novel
 #' exon. As an approximation, we take the boundaries of the read with the
 #' longest mapping to the novel exon.
-#' @param junctions data.frame with novel splice junctions.
-#' @param reads GAlignment object with reads that contain novel splice
-#'   junctions.
-#' @param touching string defining which end of the novel splice junction
-#'   touches an annotated exon.
-#' @param txdb TxDb object, e.g. the txdb slot from the prepare_annotation()
-#'   return object.
-#' @param gtxdb GRanges: All genes from the `TxDB` object.
-#' @param ebyTr GRanges: All exons from the `TxDB` object per transcript.
+#' 
+#' @param junctions data.frame with novel splice junctions. Following columns
+#'   are required: `seqnames`, `start`, `end` and `strand`.
+#' @param touching Character string. Which end of the novel splice junctions
+#'   (parameter junctions) touches an annotated exon? One of "both", "start" or
+#'   "end".
+#' @param gtxdb GRanges object. All genes from the txdb parameter, e.g. obtained
+#'   with `GenomicFeatures::genes(txdb)`.
+#' @param ebyTr GRangesList object. All exons per transcript of the txdb
+#'   parameter, e.g. obtained with `GenomicFeatures::exonsBy(txdb, by = "tx",
+#'   use.names = TRUE)`.
+#' @inheritParams identify_exon_from_sj
 #'
 #' @return data.frame with the coordinates of the novel exon. It has 6 columns:
 #'   `seqnames`, `lend`, `start`, `end`, `rstart` and `strand`.
@@ -221,7 +217,7 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
 #'
 get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
   stopifnot(touching %in% c("start", "end", "both"))
-
+  
   rs <- lapply(junctions$id, function(x) reads[mcols(reads)$which_label == x])
   r_mapped <- lapply(rs, function(x) grglist(x, order.as.in.query = FALSE,
                                              use.mcols = TRUE))
@@ -242,7 +238,7 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
                                junctions$strand, SIMPLIFY = FALSE)
     ## apply functions are not working on GRanges anymore
     js_gr <- as.list(split(GRanges(junctions), 1:nrow(junctions)))
-
+    
     ## We determine if any of the reads spanned two splice junctions. If not, we
     ## check if the novel exon could be terminal.
     full_coord <- mapply(filter_terminal_sj,
@@ -278,24 +274,28 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
 #' the novel exon is either terminal or it overlaps with existing exons. In case
 #' of a terminal exon, the function returns NA for the location of the
 #' neighbouring exon.
-#' @param reads GAlignment object with reads that contain novel splice
-#'   junctions.
-#' @param txdb TxDb object, e.g. the txdb slot from the [prepare_annotation()]
+#' 
+#' @param df data.frame with novel splice junctions. Following columns are
+#'   required: `seqnames`, `start`, `end`, `strand` and `touching`.
+#' @param reads GAlignments object. Reads that contain novel splice
+#'   junctions, e.g. obtained with import_novel_sj_reads().
+#' @param txdb TxDb object, e.g. the "txdb" slot from the [prepare_annotation()]
 #'   return object.
-#' @param gtxdb GRanges: All genes from the `TxDB` object.
-#' @param ebyTr GRanges: All exons from the `TxDB` object per transcript.
-#' @param df data.frame with novel splice junctions
 #'
-#' @return data.frame with the coordinates of the identifies novel exon from all
+#' @return data.frame with the coordinates of the identified novel exons from all
 #'   splice junctions in df. It has 6 columns:
 #'   `seqnames`, `lend`, `start`, `end`, `rstart` and `strand`.
 #'
 #' @importFrom dplyr bind_rows
+#' @importFrom GenomicFeatures genes exonsBy
 #'
 #' @export
-identify_exon_from_sj <- function(df, reads, txdb, gtxdb, ebyTr) {
+identify_exon_from_sj <- function(df, reads, txdb) {
   df$id <-  paste0(df$seqnames, ":", df$start, "-", df$end)
-
+  
+  ebyTr <- exonsBy(txdb, by = "tx", use.names = TRUE)
+  gtxdb <- genes(txdb)
+  
   ## split the junctions by type: "start", "end" or "both"
   js <- split(df, factor(df$touching))
   res <-  lapply(names(js), function(x) get_second_sj(js[[x]], reads, x, txdb,

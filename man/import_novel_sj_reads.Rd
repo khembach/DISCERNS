@@ -7,7 +7,7 @@
 import_novel_sj_reads(bam, sj_unann)
 }
 \arguments{
-\item{bam}{The path to the BAM file.}
+\item{bam}{Character string. The path to the BAM file.}
 
 \item{sj_unann}{GRanges object with unannotated splice junctions.}
 }

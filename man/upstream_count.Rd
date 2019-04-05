@@ -7,7 +7,7 @@
 upstream_count(x)
 }
 \arguments{
-\item{x}{GRangesList object with mapped parts of reads.}
+\item{x}{GRangesList object with the mapped parts of a read.}
 }
 \value{
 data.frame with the range of each mapped part and the nr of each part

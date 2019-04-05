@@ -4,23 +4,20 @@
 \alias{identify_exon_from_sj}
 \title{Identify a novel exon from a single novel splice junction}
 \usage{
-identify_exon_from_sj(df, reads, txdb, gtxdb, ebyTr)
+identify_exon_from_sj(df, reads, txdb)
 }
 \arguments{
-\item{df}{data.frame with novel splice junctions}
+\item{df}{data.frame with novel splice junctions. Following columns are
+required: \code{seqnames}, \code{start}, \code{end}, \code{strand} and \code{touching}.}
 
-\item{reads}{GAlignment object with reads that contain novel splice
-junctions.}
+\item{reads}{GAlignments object. Reads that contain novel splice
+junctions, e.g. obtained with import_novel_sj_reads().}
 
-\item{txdb}{TxDb object, e.g. the txdb slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
+\item{txdb}{TxDb object, e.g. the "txdb" slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
-
-\item{gtxdb}{GRanges: All genes from the \code{TxDB} object.}
-
-\item{ebyTr}{GRanges: All exons from the \code{TxDB} object per transcript.}
 }
 \value{
-data.frame with the coordinates of the identifies novel exon from all
+data.frame with the coordinates of the identified novel exons from all
 splice junctions in df. It has 6 columns:
 \code{seqnames}, \code{lend}, \code{start}, \code{end}, \code{rstart} and \code{strand}.
 }

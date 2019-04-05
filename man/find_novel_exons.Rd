@@ -62,11 +62,12 @@ row in the data.frame is a predicted novel exon. The columns are the
 chromosome (\code{seqnames}), the end of the upstream exon (\code{lend}) in the
 transcript, the start and end of the novel exon (\code{start} and \code{end}), the
 start of the downstream exon (\code{rstart}) in the transcript and the strand
-(\code{strand}). The last three columns are the number of reads supporting each
+(\code{strand}). The next three columns are the number of reads supporting each
 of the two splice junctions that define the novel exon: \code{unique_left} is the
 number of reads supporting the SJ from \code{lend} to \code{start} and \code{unique_right}
 is the number of supporting reads for the SJ from \code{end} to \code{rstart}.
-\code{min_reads} is the minimum of the two.
+\code{min_reads} is the minimum of the two. The last column is the ID (\code{ID}) of
+the novel exon, i.e. a number between 1 and the total number of predictions.
 }
 \description{
 Predict novel exons based on the SJ.out.tab file from STAR and/or a BAM file.

@@ -7,16 +7,16 @@
 new_transcript(start, end, pred_id, tr_ids, exons)
 }
 \arguments{
-\item{start}{Integer scalar, start of the novel exon.}
+\item{start}{Integer scalar. Start of the novel exon.}
 
-\item{end}{Integer scalar, end of the novel exon.}
+\item{end}{Integer scalar. End of the novel exon.}
 
-\item{pred_id}{Integer scalar, ID of the predicted exon}
+\item{pred_id}{Integer scalar. ID of the predicted exon.}
 
-\item{tr_ids}{Character vector with transcrip ids as returned by
-\code{\link[=get_transcripts]{get_transcripts()}}}
+\item{tr_ids}{Character vector. Transcript IDs as returned by
+\code{\link[=get_transcripts]{get_transcripts()}}.}
 
-\item{exons}{GRanges object with exon annotations from a GTF file.}
+\item{exons}{GRanges object. Exon annotations from a GTF file.}
 }
 \value{
 GRanges object with the exon annotation of the novel exon and all

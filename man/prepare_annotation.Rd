@@ -4,14 +4,14 @@
 \alias{prepare_annotation}
 \title{Prepare anntation}
 \usage{
-prepare_annotation(GTF)
+prepare_annotation(gtf_file)
 }
 \arguments{
-\item{GTF}{Path to GTF file.}
+\item{gtf_file}{Character string. Path to a GTF file.}
 }
 \value{
 List with exon and intron annotations as GRanges and the \code{TxDB}
-object.
+object. The slots are \code{exons}, \code{introns} and \code{txdb}.
 }
 \description{
 Read exon and intron annotation from a GTF file.

@@ -17,13 +17,13 @@
 #' overlap and are on the same strand, a novel cassette exon is predicted.
 #'
 #' @param sj_unann GRanges object with unannotated splice junctions.
-#' @param introns GRanges object with intron annotations, e.g. the "introns" slot
-#'  from the [prepare_annotation()] return object.
+#' @param introns GRanges object. Intron annotations, e.g. the "introns" slot
+#'  from the object returned by [prepare_annotation()].
 #'
-#' @return List with two slots: "ne" is a data.frame with the coordinates of
-#' the identifies cassette exons. It has 6 columns: `seqnames`, `lend`, `start`,
-#'  `end`, `rstart` and `strand`.. "sj" is a GRanges object with the SJs from 
-#' sj_unann that were not used to predict a cassette exons.
+#' @return List with two slots: "ne" is a data.frame with the coordinates of the
+#'   identifies cassette exons. It has 6 columns: `seqnames`, `lend`, `start`,
+#'   `end`, `rstart` and `strand`. "sj" is a GRanges object with the SJs from
+#'   the parameter sj_unann that were not used to predict cassette exons.
 #'
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom IRanges subsetByOverlaps

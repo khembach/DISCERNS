@@ -2,11 +2,13 @@
 #'
 #' Find all exons with the same strand as the splice junction and that touch it.
 #' If a sj touches two exons, the exons must come from the same gene.
-#' @param exons Exon annotation as GRanges.
-#' @param seqnames String: splice junction seqname.
-#' @param start Integer: start of splice junction.
-#' @param end Integer: end of splice junction.
-#' @param strand Factor: strand of splice junction ("-" or "+").
+#' @param exons GRanges object. Annotated exons.
+#' @param seqnames Character string or factor. Seqnames (chromosome) of the
+#'   splice junction.
+#' @param start Integer scalar. Start of the splice junction.
+#' @param end Integer scalar. End of the splice junction.
+#' @param strand Character string or factor. Strand of the splice junction ("-"
+#'   or "+").
 #'
 #' @return A string that defines which side of the splice junction is touching
 #'   an exon: "both", "start", "end", NA if the splice junction does not touch
@@ -40,8 +42,8 @@ sj_touching_exon <- function(seqnames, start, end, strand, exons) {
 
 #' Match novel splice junctions within an intron
 #'
-#' @param s Junctions from the start of the intron as GRanges.
-#' @param e Junctions from the end of the intron as GRanges.
+#' @param s GRanges object. Junctions from the start of the intron.
+#' @param e GRanges object. Junctions from the end of the intron.
 #'
 #' @return A vector with the seqnames, end of the preceding exon, start of the
 #'   novel exon, end of the novel exon, start of the consecutive exon, and the
@@ -57,16 +59,16 @@ match_sj_in_intron <- function(s, e) {
 }
 
 
-#' GRanges of a transcript
+#' Transcript range
 #'
-#' This function returns a GRange for a transcript given as a set of exons in a
-#' GRanges object.
+#' This function returns a GRanges object with the start and end of a transcript
+#' and takes a GRanges object with the transcript's exons as input.
 #'
-#' @param gr GRanges object with all exons in a transcript.
+#' @param gr GRanges object. All exons of a transcript.
 #'
-#' @return GRange with start and end of the transcript.
+#' @return GRanges object with the start and end of the transcript.
 #' @export
-#'
+#' 
 transcript_range <- function(gr) {
   ## TODO: This is only needed for the simulated data, because the transcript
   ## annotation still contains the removed exons in the GTF file. For real data,
@@ -82,14 +84,13 @@ transcript_range <- function(gr) {
 #'
 #' This function computes if a splice junction (SJ) splices to a terminal exons.
 #' If the exon at the start of the SJ is terminal, the function returns "start",
-#' "end" if it is the exon at the end and "NA" if none of the exons are terminal
-#' @param j Novel splice junction as GRange.
-#' @param txdb `TxDb` object, e.g. the txdb slot from the [prepare_annotation()]
-#'   return object.
-#' @param gtxdb All genes from the TxDB object.
-#' @param ebyTr All exons from the TxDB object per transcript.
+#' "end" if it is the exon at the end and "NA" if none of the exons are
+#' terminal.
 #'
-#' @return Scalar with either "start", "end" or "NA"
+#' @param j GRanges object. Novel splice junction.
+#' @inheritParams get_second_sj
+#'
+#' @return Character string; either "start", "end" or "NA".
 #'
 #' @importFrom GenomicFeatures transcripts
 #' @export
