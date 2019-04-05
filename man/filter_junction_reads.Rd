@@ -8,18 +8,20 @@ filter_junction_reads(bam, yield_size = 2e+05, lib_type = "PE",
   stranded = "reverse")
 }
 \arguments{
-\item{bam}{The path to the BAM file.}
+\item{bam}{Character string. The path to the BAM file.}
 
-\item{yield_size}{Integer scalar. The number of reads that should be read in
-each chunk.}
+\item{yield_size}{Integer scalar. Read the BAM file in chunks of this size.}
 
-\item{lib_type}{Character scalar. Type of the sequencing library: either "SE"
-(single-end) or "PE" (paired-end). Default: "PE"}
+\item{lib_type}{Character string. Type of the sequencing library: either "SE"
+(single-end) or "PE" (paired-end). Default "PE".}
 
-\item{stranded}{Character scalar. Strand type of the sequencing protocol:
+\item{stranded}{Character string. Strand type of the sequencing protocol:
 "unstranded" for unstranded protocols; "forward" or "reverse" for stranded
-protocols. "forward" refers to protocols where the first read comes from the
-forward (sense) strand. Default: "reverse"}
+protocols. In a "forward" protocol, the first read in a pair (or sinlge-end
+reads) comes from the forward (sense) strand and in a "reverse" protocol
+from the reverse (antisense) strand. See the \href{https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype}{Salmon documentation}
+for an explanation of the different fragment library types. Default
+"reverse".}
 }
 \value{
 GAlignments object with all junction reads from the bam file.

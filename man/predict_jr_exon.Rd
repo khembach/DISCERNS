@@ -7,10 +7,10 @@
 predict_jr_exon(junc_reads, annotation)
 }
 \arguments{
-\item{junc_reads}{GAlignments object with junction read.}
+\item{junc_reads}{GAlignments object with junction reads.}
 
 \item{annotation}{List with exon and intron annotation as GRanges. Created
-with prepare_annotation().}
+with \code{\link[=prepare_annotation]{prepare_annotation()}}.}
 }
 \value{
 data.frame with the coordinates of the predicted novel exon. It has 6

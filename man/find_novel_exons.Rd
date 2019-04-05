@@ -23,7 +23,7 @@ junction.}
 
 \item{verbose}{Print messages about the progress.}
 
-\item{bam}{Path to BAM file.}
+\item{bam}{Character string. The path to the BAM file.}
 
 \item{single_sj}{A logical scalar. Should single novel splice junctions be
 used for prediction? Requires a BAM file.}
@@ -33,14 +33,16 @@ reads or read-pairs with two novel splice junctions? Requires a BAM file.}
 
 \item{yield_size}{Integer scalar. Read the BAM file in chunks of this size.}
 
-\item{lib_type}{Character scalar. Type of the sequencing library: either "SE"
-(single-end) or "PE" (paired-end); default "PE".}
+\item{lib_type}{Character string. Type of the sequencing library: either "SE"
+(single-end) or "PE" (paired-end). Default "PE".}
 
-\item{stranded}{Character scalar. Strand type of the sequencing protocol:
+\item{stranded}{Character string. Strand type of the sequencing protocol:
 "unstranded" for unstranded protocols; "forward" or "reverse" for stranded
-protocols. "forward" refers to protocols where the first read comes from the
-forward (sense) strand; default "reverse". See the \href{https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype}{Salmon documentation}
-for an explanation of the different fragment library types.}
+protocols. In a "forward" protocol, the first read in a pair (or sinlge-end
+reads) comes from the forward (sense) strand and in a "reverse" protocol
+from the reverse (antisense) strand. See the \href{https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype}{Salmon documentation}
+for an explanation of the different fragment library types. Default
+"reverse".}
 
 \item{read_length}{Integer scalar. Length of your reads in bps. Default 101.}
 
@@ -75,7 +77,7 @@ The function has three different prediction modes:
 \item Novel exons from reads/read pairs with two novel splice junctions.
 }
 
-The cassette exon prediction is always preformed and the second and third
+The cassette exon prediction is always performed and the second and third
 mode can be turned on/off with the paramters \code{single_sj} and \code{read_based}.
 }
 \details{
