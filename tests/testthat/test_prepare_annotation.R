@@ -1,3 +1,5 @@
+context("Prepare GTF annotation")
+
 library(exondiscovery)
 
 gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
