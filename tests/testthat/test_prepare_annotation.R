@@ -10,4 +10,8 @@ test_that("annotation is prepared correctly", {
   expect_is(anno[["exons"]], "GRanges")
   expect_is(anno[["introns"]], "GRanges")
   expect_is(anno[["txdb"]], "TxDb")
-  })
+  
+  gtf_file <- ""
+  expect_error(prepare_annotation(""), paste0("File ", gtf_file, 
+                                              " does not exist."))
+})
