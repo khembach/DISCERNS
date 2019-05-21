@@ -21,6 +21,16 @@ test_that("output from find_novel_exons is correct", {
   expect_equal(colnames(novel_exon_df), c("seqnames", "start", "end", "strand",
                                          "lend", "rstart", "unique_left", 
                                          "unique_right", "min_reads", "ID"))
+  expect_s3_class(novel_exon_df$seqnames, "factor")
+  expect_type(novel_exon_df$start, "integer")
+  expect_type(novel_exon_df$end, "integer")
+  expect_s3_class(novel_exon_df$strand, "factor")
+  expect_type(novel_exon_df$lend, "integer")
+  expect_type(novel_exon_df$rstart, "integer")
+  expect_type(novel_exon_df$unique_left, "integer")
+  expect_type(novel_exon_df$unique_right, "integer")
+  expect_type(novel_exon_df$min_reads, "integer")
+  expect_type(novel_exon_df$ID, "integer")
 })
 
 test_that("parameters work", {

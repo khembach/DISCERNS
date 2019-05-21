@@ -208,6 +208,9 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   if (!stranded %in% c("unstranded", "forward", "reverse")) {
     stop('Parameter stranded has to be one of "unstranded", "forward" or "reverse".')
   }
+  if (any(read_length <= 0, overhang_min <= 0, min_intron_size <= 0)) {
+    stop('Parameters "read_length", "overhang_min" and "min_intron_size" must be >= 0.')
+  }
   
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]

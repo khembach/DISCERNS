@@ -37,16 +37,16 @@ identify_exon_end <- function(r, j_start, j_end, j_seqnames, j_strand) {
     ## If there are reads with a second junction, we take the coordinates from
     ## the mapped part.
     unique(data.frame(seqnames = j_seqnames,
-                      lend = j_start - 1,
-                      start = j_end + 1,
-                      end = r_ranges$end[sj_hit_downstream - 1],
+                      lend = j_start - 1L,
+                      start = j_end + 1L,
+                      end = r_ranges$end[sj_hit_downstream - 1L],
                       rstart = r_ranges$start[sj_hit_downstream],
                       strand = j_strand))
   } else {
     ## If there are no reads with a second junction, we take the longest mapped
     ## range.
-    data.frame(seqnames = j_seqnames, lend = j_start - 1,
-               start = j_end + 1,
+    data.frame(seqnames = j_seqnames, lend = j_start - 1L,
+               start = j_end + 1L,
                end = max(r_ranges$end[sj_hit]),
                rstart = NA,
                strand = j_strand)
@@ -96,10 +96,10 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
   if (length(sj_hit_upstream) > 0) {
     ## if there are reads with an junction upstream of the SJ of interest
     unique(data.frame(seqnames = j_seqnames,
-                      lend = r_ranges$end[sj_hit_upstream - 1],
+                      lend = r_ranges$end[sj_hit_upstream - 1L],
                       start = r_ranges$start[sj_hit_upstream],
-                      end = j_start - 1,
-                      rstart = j_end + 1,
+                      end = j_start - 1L,
+                      rstart = j_end + 1L,
                       strand = j_strand))
   } else {
     ## If there are no reads with a second junction, we take the longest mapped
@@ -107,8 +107,8 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
     data.frame(seqnames = j_seqnames,
                lend = NA,
                start = min(r_ranges$start[sj_hit]),
-               end = j_start - 1,
-               rstart = j_end + 1,
+               end = j_start - 1L,
+               rstart = j_end + 1L,
                strand = j_strand)
   }
 }

@@ -177,8 +177,8 @@ predict_jr_exon <- function(junc_reads, annotation) {
   novel_reads <- novel_reads[order(novel_reads$start), ]
   read_pred <- novel_reads %>%
     group_by(names) %>%
-    summarise(lend = nth(start - 1, 1), start1 = nth(end + 1, 1),
-              end1 = nth(start - 1, 2), rstart = nth(end + 1, 2),
+    summarise(lend = nth(start - 1L, 1L), start1 = nth(end + 1L, 1L),
+              end1 = nth(start - 1L, 2L), rstart = nth(end + 1L, 2L),
               seqnames = unique(seqnames), strand = unique(strand))
   
   ## TODO: only keep predictions with >- x supporting reads
@@ -238,6 +238,10 @@ predict_jr_exon <- function(junc_reads, annotation) {
 predict_jrp_exon <- function(junc_reads, annotation, 
                              read_length = 101, overhang_min = 12, 
                              min_intron_size = 21) {
+  if (any(read_length <= 0, overhang_min <= 0, min_intron_size <= 0)) {
+    stop('Parameters "read_length", "overhang_min" and "min_intron_size" must be >= 0.')
+  }
+  
   junc_rp <- junc_reads[njunc(junc_reads) == 1, ]
   junc_rp <- junc_rp[duplicated(mcols(junc_rp)$qname) | duplicated(mcols(junc_rp)$qname,
                                                                    fromLast = TRUE), ]
@@ -306,8 +310,8 @@ predict_jrp_exon <- function(junc_reads, annotation,
   ## predict the novel exons based on the novel junctions
   novel_reads <- novel_reads[order(novel_reads$start), ]
   read_pairs_pred <- novel_reads %>% group_by(names) %>%
-    summarise(lend = nth(start - 1, 1), start1 = nth(end + 1, 1),
-              end1 = nth(start - 1, 2), rstart = nth(end + 1, 2),
+    summarise(lend = nth(start - 1L, 1L), start1 = nth(end + 1L, 1L),
+              end1 = nth(start - 1L, 2L), rstart = nth(end + 1L, 2L),
               seqnames = unique(seqnames), strand = unique(strand))
   read_pairs_pred <- read_pairs_pred %>%
     select(-names) %>%
