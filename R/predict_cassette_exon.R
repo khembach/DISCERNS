@@ -61,18 +61,18 @@ predict_cassette_exon <- function(sj_unann, introns) {
   ends <- ends[paired_junc_id]
 
   if (length(starts) > 0 & length(ends) > 0) {
-    novel_exons <- data.frame(seqnames = as.vector(seqnames(starts)),
+    novel_exons <- data.frame(seqnames = as.factor(as.vector(seqnames(starts))),
                               lend = start(starts) - 1L,
                               start = end(starts) + 1L, end = start(ends) - 1L,
                               rstart = end(ends) + 1L,
-                              strand = as.vector(strand(starts)),
+                              strand = as.factor(as.vector(strand(starts))),
                               stringsAsFactors = TRUE )
     sj_unann <- subsetByOverlaps(sj_unann, c(starts, ends),
                                  type = "equal", invert = TRUE)
   } else {
-    novel_exons <- data.frame(seqnames = character(), lend = integer(),
+    novel_exons <- data.frame(seqnames = factor(), lend = integer(),
                               start = integer(), end = integer(),
-                              rstart = integer(), strand = character(),
+                              rstart = integer(), strand = factor(),
                               stringsAsFactors = TRUE)
   }
   return(list(ne = novel_exons, sj = sj_unann))
