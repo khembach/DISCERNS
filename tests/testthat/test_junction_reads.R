@@ -9,6 +9,18 @@ bam <- system.file("extdata", "selected.bam",
                    package = "exondiscovery", mustWork = TRUE)
 
 junc_reads <- filter_junction_reads(bam, lib_type = "PE", stranded = "reverse")
+
+test_that("filter_junction_reads works correctly", {
+  expect_error(filter_junction_reads(bam, lib_type = "pe"), 
+               'Parameter lib_type has to be either "SE" or "PE".')
+  expect_error(filter_junction_reads(bam, stranded = "not stranded"), 
+               'Parameter stranded has to be one of "unstranded", "forward" or "reverse".')
+  
+  expect_s4_class(junc_reads, "GAlignments")
+  expect_true(length(junc_reads) > 0)
+})
+
+
 read_pred <- predict_jr_exon(junc_reads, anno)
 
 test_that("predict_jr_exon() input and output are correct", {
@@ -16,6 +28,7 @@ test_that("predict_jr_exon() input and output are correct", {
   
   expect_s3_class(read_pred, "data.frame")
 })
+
 
 read_pred <- predict_jrp_exon(junc_reads, anno)
 

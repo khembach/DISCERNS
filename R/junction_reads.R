@@ -87,7 +87,8 @@ filter_junction_reads <- function(bam, yield_size = 200000,
   
   if (lib_type == "PE") {
     if( stranded == "unstranded") {
-      reduceByYield(bf, YIELD, MAP_UNSTRANDED, REDUCE = c, DONE, parallel = FALSE)
+      reduceByYield(bf, YIELD, MAP_UNSTRANDED, REDUCE = c, DONE, 
+                    parallel = FALSE)
     } else {
       reduceByYield(bf, YIELD, MAP, REDUCE = c, DONE, parallel = FALSE, 
                     stranded = stranded)
