@@ -129,6 +129,10 @@ filter_junction_reads <- function(bam, yield_size = 200000,
 #' @export
 #'
 predict_jr_exon <- function(junc_reads, annotation) {
+  if (length(junc_reads) == 0){
+    stop("The GAlignments object for parameter junc_reads is empty.")
+  }
+  
   ##  keep all reads with 2 junctions and also look for novel junction combinations
   ## filter all reads with 2 "N" in cigar
   two_jr <- junc_reads[njunc(junc_reads) == 2, ]
@@ -240,6 +244,10 @@ predict_jrp_exon <- function(junc_reads, annotation,
                              min_intron_size = 21) {
   if (any(read_length <= 0, overhang_min <= 0, min_intron_size <= 0)) {
     stop('Parameters "read_length", "overhang_min" and "min_intron_size" must be >= 0.')
+  }
+  
+  if (length(junc_reads) == 0){
+    stop("The GAlignments object for parameter junc_reads is empty.")
   }
   
   junc_rp <- junc_reads[njunc(junc_reads) == 1, ]

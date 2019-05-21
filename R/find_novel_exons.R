@@ -294,6 +294,11 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     junc_reads <- filter_junction_reads(bam, yield_size = yield_size, 
                                         lib_type = lib_type, 
                                         stranded = stranded)
+    if (length(junc_reads) == 0){
+      stop(paste0("Reading the BAM file", bam, 
+                  " resulted in an empty GAlignments object."))
+    }
+    
     read_pred <- predict_jr_exon(junc_reads, annotation)
     
     if (exists("novel_exons", inherits = FALSE)) {
