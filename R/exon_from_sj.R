@@ -244,7 +244,8 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
     full_coord <- mapply(filter_terminal_sj,
                          full_coord_start, full_coord_end, j = js_gr,
                          MoreArgs = list(txdb = txdb, gtxdb = gtxdb,
-                                         ebyTr=ebyTr))
+                                         ebyTr=ebyTr),
+                         SIMPLIFY = FALSE)
     return(dplyr::bind_rows(full_coord))
   } else if (touching == "start"){
     ## Case 1: The SJ touches an annotated exon on the start, so we check for
