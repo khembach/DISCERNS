@@ -348,11 +348,12 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   novel_exons$unique_left <- sj$unique[match(key_ne_l, key_sj)]
   novel_exons$unique_right <- sj$unique[match(key_ne_r, key_sj)]
   
-  ## if the exon is a cassette exons, but one of the junctions is not in
-  #SJ.out.tab (count = NA), # remove the prediction, because it is most likely
-  #wrong (this only happens if we predict exons from reads) novel_exons <-
-  #novel_exons %>% filter(!(!is.na(lend) & is.na(unique_left))) %>%
-  #filter(!(!is.na(rstart) & is.na(unique_right)))
+  ## We remove all predicted cassette exons where one of the junctions is not in
+  ## SJ.out.tab, because these exons are most likely wrong (this only happens if
+  ## we predict exons from reads).
+  novel_exons <- novel_exons %>% 
+    filter(!(!is.na(lend) & is.na(unique_left))) %>%
+    filter(!(!is.na(rstart) & is.na(unique_right)))
   
   ## take the minimum read coverage of both junctions
   novel_exons$min_reads <- pmin(novel_exons$unique_left,
