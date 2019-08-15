@@ -334,5 +334,13 @@ predict_jrp_exon <- function(junc_reads, annotation,
                                                     invert = TRUE))
   read_pairs_pred <- read_pairs_pred %>% select(-width)
   read_pairs_pred$seqnames <- read_pairs_pred$seqnames
+  
+  ### Keep all exons that are located within gene boundaries (both annotated
+  ### junctions are from the same gene)
+  read_pairs_pred <- read_pairs_pred[unique(queryHits(findOverlaps(
+    GRanges(read_pairs_pred$seqnames,
+            IRanges(read_pairs_pred$lend, read_pairs_pred$rstart),
+            read_pairs_pred$strand ),
+    genes(annotation[["txdb"]]), type = "within"))), ]
   read_pairs_pred
 }
