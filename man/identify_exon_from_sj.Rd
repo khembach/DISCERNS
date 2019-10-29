@@ -4,7 +4,7 @@
 \alias{identify_exon_from_sj}
 \title{Identify a novel exon from a single novel splice junction}
 \usage{
-identify_exon_from_sj(df, reads, txdb)
+identify_exon_from_sj(df, reads, txdb, cores)
 }
 \arguments{
 \item{df}{data.frame with novel splice junctions. Following columns are
@@ -15,6 +15,8 @@ junctions, e.g. obtained with import_novel_sj_reads().}
 
 \item{txdb}{TxDb object, e.g. the "txdb" slot from the \code{\link[=prepare_annotation]{prepare_annotation()}}
 return object.}
+
+\item{cores}{Integer scalar. Number of cores to use. Default 1.}
 }
 \value{
 data.frame with the coordinates of the identified novel exons from all

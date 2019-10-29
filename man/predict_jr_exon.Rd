@@ -13,7 +13,7 @@ predict_jr_exon(junc_reads, annotation)
 with \code{\link[=prepare_annotation]{prepare_annotation()}}.}
 }
 \value{
-data.frame with the coordinates of the predicted novel exon. It has 6
+data.table with the coordinates of the predicted novel exon. It has 6
 columns: seqnames, lend, start, end, rstart and strand
 }
 \description{

@@ -17,16 +17,15 @@
 #'
 sj_touching_exon <- function(seqnames, start, end, strand, exons) {
   ex <- exons[seqnames(exons) == seqnames]
-
-  ex <- exons
+  
   s <- which(start - 1 == end(ex))
-  s <- ex[s, ]   ## all touching exons at start of sj
+  s <- ex[s]   ## all touching exons at start of sj
   s <- s[strand(s) == strand, ] ## all touching exons with same strand
-
+  
   e <- which((end + 1) == start(ex))
   e <- ex[e]   ## all touching exons at end of sj
   e <- e[strand(e) == strand, ]
-
+  
   if (length(s) > 0){
     if (length(e) > 0){
       ## pair of touching exons from the same gene
@@ -34,7 +33,7 @@ sj_touching_exon <- function(seqnames, start, end, strand, exons) {
         "both"
       } else NA
     } else "start"
-  } else if (length(e) >0){
+  } else if (length(e) > 0){
     "end"
   } else NA
 }

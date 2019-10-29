@@ -4,7 +4,7 @@
 \alias{get_second_sj}
 \title{Identify the second splice junction of a novel exon}
 \usage{
-get_second_sj(junctions, reads, touching, txdb, gtxdb, ebyTr)
+get_second_sj(junctions, reads, touching, txdb, gtxdb, ebyTr, cores)
 }
 \arguments{
 \item{junctions}{data.frame with novel splice junctions. Following columns
@@ -25,6 +25,8 @@ with \code{GenomicFeatures::genes(txdb)}.}
 
 \item{ebyTr}{GRangesList object. All exons per transcript of the txdb
 parameter, e.g. obtained with \code{GenomicFeatures::exonsBy(txdb, by = "tx", use.names = TRUE)}.}
+
+\item{cores}{Integer scalar. Number of cores to use. Default 1.}
 }
 \value{
 data.frame with the coordinates of the novel exon. It has 6 columns:

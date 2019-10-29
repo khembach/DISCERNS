@@ -213,9 +213,13 @@ filter_terminal_sj <- function(start_coords, end_coords, j,
 #'
 #' @return data.frame with the coordinates of the novel exon. It has 6 columns:
 #'   `seqnames`, `lend`, `start`, `end`, `rstart` and `strand`.
+#'   
+#' @importFrom parallel mcmapply
+#'   
 #' @export
 #'
-get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
+get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr, 
+                          cores) {
   stopifnot(touching %in% c("start", "end", "both"))
   
   rs <- lapply(junctions$id, function(x) reads[mcols(reads)$which_label == x])
@@ -230,22 +234,24 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
   if (touching == "both") {
     ## Case 3: The novel SJ touches annotated exons on both ends. We try to
     ## identify a novel exon on both the start and the end of the novel SJ
-    full_coord_end <- mapply(identify_exon_end, r_mapped, junctions$start,
+    full_coord_end <- mcmapply(identify_exon_end, r_mapped, junctions$start,
                              junctions$end, junctions$seqnames,
-                             junctions$strand, SIMPLIFY = FALSE)
-    full_coord_start <- mapply(identify_exon_start, r_mapped, junctions$start,
+                             junctions$strand, SIMPLIFY = FALSE, 
+                             mc.cores = cores)
+    full_coord_start <- mcmapply(identify_exon_start, r_mapped, junctions$start,
                                junctions$end, junctions$seqnames,
-                               junctions$strand, SIMPLIFY = FALSE)
+                               junctions$strand, SIMPLIFY = FALSE,
+                               mc.cores = cores)
     ## apply functions are not working on GRanges anymore
     js_gr <- as.list(split(GRanges(junctions), 1:nrow(junctions)))
     
     ## We determine if any of the reads spanned two splice junctions. If not, we
     ## check if the novel exon could be terminal.
-    full_coord <- mapply(filter_terminal_sj,
+    full_coord <- mcmapply(filter_terminal_sj,
                          full_coord_start, full_coord_end, j = js_gr,
                          MoreArgs = list(txdb = txdb, gtxdb = gtxdb,
                                          ebyTr=ebyTr),
-                         SIMPLIFY = FALSE)
+                         SIMPLIFY = FALSE, mc.cores = cores)
     return(dplyr::bind_rows(full_coord))
   } else if (touching == "start"){
     ## Case 1: The SJ touches an annotated exon on the start, so we check for
@@ -256,9 +262,9 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
     ## reads that cover the novel SJ and the upstream exon.
     f <- identify_exon_start
   }
-  full_coord <- mapply(f, r_mapped, junctions$start,
+  full_coord <- mcmapply(f, r_mapped, junctions$start,
                        junctions$end, junctions$seqnames,
-                       junctions$strand, SIMPLIFY = FALSE)
+                       junctions$strand, SIMPLIFY = FALSE, mc.cores = cores)
   dplyr::bind_rows(full_coord)
 }
 
@@ -282,6 +288,7 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
 #'   junctions, e.g. obtained with import_novel_sj_reads().
 #' @param txdb TxDb object, e.g. the "txdb" slot from the [prepare_annotation()]
 #'   return object.
+#' @param cores Integer scalar. Number of cores to use. Default 1.
 #'
 #' @return data.frame with the coordinates of the identified novel exons from all
 #'   splice junctions in df. It has 6 columns:
@@ -291,7 +298,7 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr) {
 #' @importFrom GenomicFeatures genes exonsBy
 #'
 #' @export
-identify_exon_from_sj <- function(df, reads, txdb) {
+identify_exon_from_sj <- function(df, reads, txdb, cores) {
   df$id <-  paste0(df$seqnames, ":", df$start, "-", df$end)
   
   ebyTr <- exonsBy(txdb, by = "tx", use.names = TRUE)
@@ -299,7 +306,7 @@ identify_exon_from_sj <- function(df, reads, txdb) {
   
   ## split the junctions by type: "start", "end" or "both"
   js <- split(df, factor(df$touching))
-  res <-  lapply(names(js), function(x) get_second_sj(js[[x]], reads, x, txdb,
-                                                      gtxdb, ebyTr))
+  res <- lapply(names(js), function(x) get_second_sj(js[[x]], reads, x, txdb,
+                                                      gtxdb, ebyTr, cores))
   dplyr::bind_rows(res)
 }

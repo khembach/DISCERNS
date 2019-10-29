@@ -8,7 +8,7 @@ find_novel_exons(sj_filename, annotation, min_unique = 1,
   gzipped = FALSE, verbose = TRUE, bam, single_sj = TRUE,
   read_based = TRUE, yield_size = 2e+05, lib_type = "PE",
   stranded = "reverse", read_length = 101, overhang_min = 12,
-  min_intron_size = 21)
+  min_intron_size = 21, cores = 1, tile_width = 1e+07)
 }
 \arguments{
 \item{sj_filename}{Path to SJ.out.tab file.}
@@ -16,8 +16,10 @@ find_novel_exons(sj_filename, annotation, min_unique = 1,
 \item{annotation}{List with exon and intron annotation as GRanges. Created
 with \code{\link[=prepare_annotation]{prepare_annotation()}}.}
 
-\item{min_unique}{Minimal number of reads required to map over a splice
-junction.}
+\item{min_unique}{Integer scalar. Minimal number of reads required to map over
+a splice junction. Novel splice junctions with less reads are excluded from
+the analysis. All predicted novel exons with less than \code{min_unique} reads
+are discared.}
 
 \item{gzipped}{A logical scalar. Is the input file gzipped? Default FALSE.}
 
@@ -55,6 +57,12 @@ default values from STAR. Default 12.}
 \item{min_intron_size}{Integer scalar. Minimum intron size
 (\code{--alignIntronMin} parameter of STAR). You do not have to set this
 parameter if you used the default values from STAR. Default 21.}
+
+\item{cores}{Integer scalar. Number of cores to use. Default 1.}
+
+\item{tile_width}{Integer scalar. The genome will be partitioned into tiles
+of this size. The reads in the \code{bam} file within each tile will be consecutively
+imported (or in parallel if \code{cores} > 1). Default 1e7.}
 }
 \value{
 Data.frame with the coordinates of the identified novel exons. Each
@@ -150,16 +158,15 @@ or by read pairs where each read spans one junction. Each of the SJ pairs are
 compared with the annotated SJs per transcript and already annotated SJ pairs
 are removed.
 For paired-end reads, there is an additional requirement: The distance between
-the end of the first read in a pair and the start of the second read has to
-has to be \code{< 2*(readlength-minOverhang) + minIntronSize}. Here,
-\code{readlength} is the length of the reads, \code{minOverhang} is the minmal required
-read overhang over a SJ of the alignment tool and \code{minIntronSize} is the
-minimal required intron length of the alignment tool. For example, paired-end
-reads with a lenght of 101 nts and a minimal overhang of 6 and a minimal
-intron length of 21 allow a distance of at most 211 nucleotides between the
-two SJs: 2*(101-6) + 21 = 211. If the distance between the two SJs exceeds the
-limit, it cannot be guaranteed that the junctions are connected to the same
-exon.
+the end of the first read in a pair and the start of the second read has to be
+\code{< 2*(readlength-minOverhang) + minIntronSize}. Here, \code{readlength} is the
+length of the reads, \code{minOverhang} is the minmal required read overhang over a
+SJ of the alignment tool and \code{minIntronSize} is the minimal required intron
+length of the alignment tool. For example, paired-end reads with a lenght of
+101 nts and a minimal overhang of 6 and a minimal intron length of 21 allow a
+distance of at most 211 nucleotides between the two SJs: 2*(101-6) + 21 = 211.
+If the distance between the two SJs exceeds the limit, it cannot be guaranteed
+that the junctions are connected to the same exon.
 
 Novel exons are then predicted from novel combinations of the identified SJ
 pairs. A novel exon is only predicted if it is contained within the boundaries

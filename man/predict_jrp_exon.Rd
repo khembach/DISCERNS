@@ -33,15 +33,15 @@ columns: \code{seqnames}, \code{lend}, \code{start}, \code{end}, \code{rstart} a
 Novel exons are predicted from paired-end reads where each read spans one
 splice junction. First, the read pairs are filtered and the distance between
 the end of the first junction and the start of the second junction has to be
-\code{< 2 * (read_length - overhang_min) + min_intron_size}. Here, \code{read_length} is the length
-of the reads, \code{overhang_min} is the minmal required read overhang over a splice
-junction of the alignment tool and \code{min_intron_size} is the minimal required
-intron length of the alignment tool. For example, paired-end reads with a
-lenght of 101 nts and a minimal overhang of 6 and a minimal intron length of
-21 allow a distance of at most 211 nucleotides between the two splice
-junctions: \code{2 * (101 - 6) + 21 = 211}. If the distance between the two splice
-junctions exceeds the limit, it cannot be guaranteed that the junctions are
-connected to the same exon. Splice junction pairs that are already annotated
-in a transcript are removed. Novel exons are predicted from the remaining
-splice junction pairs.
+\code{< 2 * (read_length - overhang_min) + min_intron_size}. Here, \code{read_length}
+is the length of the reads, \code{overhang_min} is the minmal required read
+overhang over a splice junction of the alignment tool and \code{min_intron_size}
+is the minimal required intron length of the alignment tool. For example,
+paired-end reads with a lenght of 101 nts and a minimal overhang of 6 and a
+minimal intron length of 21 allow a distance of at most 211 nucleotides
+between the two splice junctions: \code{2 * (101 - 6) + 21 = 211}. If the distance
+between the two splice junctions exceeds the limit, it cannot be guaranteed
+that the junctions are connected to the same exon. Splice junction pairs that
+are already annotated in a transcript are removed. Novel exons are predicted
+from the remaining splice junction pairs.
 }

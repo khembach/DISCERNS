@@ -31,10 +31,13 @@ Imports:
     Rsamtools,
     magrittr,
     rlang,
-    GenomicFiles
+    GenomicFiles,
+    Rcpp (>= 1.0.2)
 Suggests: 
     BiocStyle,
     knitr,
     rmarkdown,
     testthat
 VignetteBuilder: knitr
+LinkingTo: Rcpp
+SystemRequirements: C++11

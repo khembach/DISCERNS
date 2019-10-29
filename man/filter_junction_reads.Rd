@@ -4,13 +4,11 @@
 \alias{filter_junction_reads}
 \title{Junction reads from BAM file}
 \usage{
-filter_junction_reads(bam, yield_size = 2e+05, lib_type = "PE",
-  stranded = "reverse")
+filter_junction_reads(bam, lib_type = "PE", stranded = "reverse",
+  cores = 1, yield_size = 2e+05, tile_width = 1e+07)
 }
 \arguments{
 \item{bam}{Character string. The path to the BAM file.}
-
-\item{yield_size}{Integer scalar. Read the BAM file in chunks of this size.}
 
 \item{lib_type}{Character string. Type of the sequencing library: either "SE"
 (single-end) or "PE" (paired-end). Default "PE".}
@@ -22,15 +20,33 @@ reads) comes from the forward (sense) strand and in a "reverse" protocol
 from the reverse (antisense) strand. See the \href{https://salmon.readthedocs.io/en/latest/library_type.html#fraglibtype}{Salmon documentation}
 for an explanation of the different fragment library types. Default
 "reverse".}
+
+\item{cores}{Integer scalar. Number of cores to use. Default 1.}
+
+\item{yield_size}{Integer scalar. Read the BAM file in chunks of this size.}
+
+\item{tile_width}{Integer scalar. The genome will be partitioned into tiles
+of this size. The reads in the \code{bam} file within each tile will be consecutively
+imported (or in parallel if \code{cores} > 1). Default 1e7.}
 }
 \value{
-GAlignments object with all junction reads from the bam file.
+GAlignments object with all junction reads from the \code{bam} file.
 }
 \description{
 The function takes a BAM file as input and returns all reads with "N" in the
 CIGAR string and that are properly paired.
 }
 \details{
-The yieldSize param determines the runtime: The bigger, the faster. If possible, use at
-least 200000.
+The \code{yield_size} param determines the runtime: The bigger, the faster. If
+possible, use at least 200000. The same goes for the \code{tile_width} param: the
+bigger the faster. Also, the BAM file can be read in parallel (with mclapply)
+if \code{cores} > 1.
+
+Per tile, we only keep the reads that have their end location inside the
+tile. This prevents having duplicate reads in the output, in case the read
+overlaps the tile boundary.
+
+Note: The human gneome has ~3 billion base pairs. If we have a BAM file with
+100 million reads --> assuming uniform read coverage: 0.033 reads per bp
+a genome tile of 1e7 contains 333k reads.
 }

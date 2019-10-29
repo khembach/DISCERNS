@@ -75,16 +75,15 @@
 #' are removed. 
 
 #'For paired-end reads, there is an additional requirement: The distance between
-#'the end of the first read in a pair and the start of the second read has to
-#'has to be ```< 2*(readlength-minOverhang) + minIntronSize```. Here,
-#'`readlength` is the length of the reads, `minOverhang` is the minmal required
-#'read overhang over a SJ of the alignment tool and `minIntronSize` is the
-#'minimal required intron length of the alignment tool. For example, paired-end
-#'reads with a lenght of 101 nts and a minimal overhang of 6 and a minimal
-#'intron length of 21 allow a distance of at most 211 nucleotides between the
-#'two SJs: 2*(101-6) + 21 = 211. If the distance between the two SJs exceeds the
-#'limit, it cannot be guaranteed that the junctions are connected to the same
-#'exon.
+#'the end of the first read in a pair and the start of the second read has to be
+#'```< 2*(readlength-minOverhang) + minIntronSize```. Here, `readlength` is the
+#'length of the reads, `minOverhang` is the minmal required read overhang over a
+#'SJ of the alignment tool and `minIntronSize` is the minimal required intron
+#'length of the alignment tool. For example, paired-end reads with a lenght of
+#'101 nts and a minimal overhang of 6 and a minimal intron length of 21 allow a
+#'distance of at most 211 nucleotides between the two SJs: 2*(101-6) + 21 = 211.
+#'If the distance between the two SJs exceeds the limit, it cannot be guaranteed
+#'that the junctions are connected to the same exon.
 #'
 #'Novel exons are then predicted from novel combinations of the identified SJ
 #'pairs. A novel exon is only predicted if it is contained within the boundaries
@@ -94,8 +93,10 @@
 #'@param sj_filename Path to SJ.out.tab file.
 #'@param annotation List with exon and intron annotation as GRanges. Created
 #'  with [prepare_annotation()].
-#'@param min_unique Minimal number of reads required to map over a splice
-#'  junction.
+#'@param min_unique Integer scalar. Minimal number of reads required to map over
+#'  a splice junction. Novel splice junctions with less reads are excluded from
+#'  the analysis. All predicted novel exons with less than `min_unique` reads
+#'  are discared.
 #'@param verbose Print messages about the progress.
 #'@param gzipped A logical scalar. Is the input file gzipped? Default FALSE.
 #'@param bam Character string. The path to the BAM file.
@@ -123,6 +124,10 @@
 #' @param min_intron_size Integer scalar. Minimum intron size
 #'   (`--alignIntronMin` parameter of STAR). You do not have to set this
 #'   parameter if you used the default values from STAR. Default 21.
+#' @param cores Integer scalar. Number of cores to use. Default 1.
+#' @param tile_width Integer scalar. The genome will be partitioned into tiles
+#'   of this size. The reads in the `bam` file within each tile will be consecutively
+#'   imported (or in parallel if `cores` > 1). Default 1e7.
 #'
 #'@return Data.frame with the coordinates of the identified novel exons. Each
 #'  row in the data.frame is a predicted novel exon. The columns are the
@@ -140,7 +145,10 @@
 #'@import GenomicRanges
 #'@import IRanges
 #'@importFrom S4Vectors queryHits subjectHits
-#'@importFrom dplyr full_join mutate
+#'@importFrom dplyr full_join mutate filter
+#'@importFrom GenomeInfoDb seqlevels seqlevelsInUse
+#'@importFrom parallel mclapply
+#'@importFrom magrittr "%>%"
 #'
 #'@export
 #'
@@ -200,7 +208,8 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                              yield_size = 200000, 
                              lib_type = "PE", stranded = "reverse", 
                              read_length = 101, overhang_min = 12, 
-                             min_intron_size = 21) {
+                             min_intron_size = 21, cores = 1, 
+                             tile_width = 1e7) {
   
   if (!lib_type %in% c("SE", "PE")) {
     stop('Parameter lib_type has to be either "SE" or "PE"')
@@ -218,7 +227,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   if (verbose) message("Reading splice junctions from file")
   
   if (gzipped) {
-    sj <- fread(paste0("zcat ", sj_filename))
+    sj <- fread(cmd = paste0("zcat ", sj_filename))
   } else {
     sj <- fread(sj_filename)
   }
@@ -233,6 +242,13 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   
   sj_gr <- GRanges(sj)
   
+  ## unify the seqnames of the novel SJs and the annotation
+  ## SJs that are not present in the annotation will be removed
+  sj_gr <- sj_gr[seqnames(sj_gr) %in% 
+                   c(seqnames(annotation[["exons"]]), 
+                     seqnames(annotation[["introns"]]))]
+  GenomeInfoDb::seqlevels(sj_gr) <- seqlevelsInUse(sj_gr)
+
   ## filter out all annotated junctions
   sj_ann <- subsetByOverlaps(sj_gr, introns, type = "equal")
   sj_unann <- sj_gr[!(sj_gr %in% sj_ann)]
@@ -261,27 +277,42 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   if (single_sj) {
     if (verbose)
       message("Find exon coordinates of exons adjacent to novel splice junctions")
+      message("Importing novel SJ reads, this might take some time...")
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
     }
-    reads <- import_novel_sj_reads(bam, sj_unann)
     
-    ## convert GRanges to data.frame otherwise we cannot use apply functions
-    sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
-    
+    ## TODO: is this really necessary? This is faster when using 15 cores...
+    if(cores > 5){  
+      reads <- import_novel_sj_reads_parallel(bam, yield_size = yield_size, 
+                                               sj_unann, cores = cores)
+      reads <- do.call("c", reads) 
+    } else {
+      reads <- import_novel_sj_reads(bam, sj_unann)
+    }
+     
     ## annotate which end of a splice junction is touching an annotated exon
-    touching <- mapply(sj_touching_exon, sj_unann$seqnames, sj_unann$start,
-                       sj_unann$end, sj_unann$strand,
-                       MoreArgs = list(exons = exons))
+    ## We only use the exon with seqnames that are in the list of novel SJs
+    touching <- mclapply(seq_along(sj_unann), function(i) 
+      sj_touching_exon(as.character(seqnames(sj_unann[i])), 
+                       start(sj_unann[i]), end(sj_unann[i]), 
+                       strand(sj_unann[i]), 
+                       exons = exons[seqnames(exons) %in% seqnames(sj_unann)]), 
+      mc.cores = cores)
+    touching <- unlist(touching)
+    
     sj_unann$touching <- touching
     ## remove the ambiguous sj that touch different genes on both ends
     sj_unann <- sj_unann[!is.na(touching), ]
     
-    res <- identify_exon_from_sj(sj_unann, reads = reads,
-                                 txdb = annotation[["txdb"]])
+    sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
     
-    novel_exons <- rbind(novel_exons, res)
-    
+    novel_exons <- rbind(novel_exons, 
+                         identify_exon_from_sj(sj_unann, reads = reads,
+                                               txdb = annotation[["txdb"]], 
+                                               cores = cores))
+    ## remove unneeded objects
+    rm(reads, sj_unann, touching)
   }
   
   if (read_based) {
@@ -291,9 +322,14 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
     }
-    junc_reads <- filter_junction_reads(bam, yield_size = yield_size, 
-                                        lib_type = lib_type, 
-                                        stranded = stranded)
+
+    junc_reads <- filter_junction_reads(bam, lib_type = lib_type, 
+                                        stranded = stranded, cores = cores, 
+                                        yield_size = yield_size, 
+                                        tile_width = tile_width)
+    ## unlist the list of GAlignments objects
+    junc_reads <- do.call(c, junc_reads)  
+
     if (length(junc_reads) == 0){
       stop(paste0("Reading the BAM file", bam, 
                   " resulted in an empty GAlignments object."))
@@ -303,16 +339,8 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     
     if (exists("novel_exons", inherits = FALSE)) {
       ## make sure the factors have the same levels
-      combined <- union(levels(read_pred$strand), levels(novel_exons$strand))
-      ## predictions from both the reads and the SJ.out.tab
-      novel_exons <- full_join(mutate(read_pred,
-                                      strand = factor(strand, 
-                                                      levels = combined)),
-                               mutate(novel_exons,
-                                      strand = factor(strand,
-                                                      levels = combined)),
-                               by = c("seqnames", "start", "end", "strand", 
-                                      "lend", "rstart"))
+      novel_exons <- merge(novel_exons, read_pred, all = TRUE)
+      novel_exons$seqnames <- droplevels(novel_exons$seqnames)
     } else {
       novel_exons <- read_pred
     }
@@ -324,13 +352,8 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                                          read_length = read_length, 
                                          overhang_min = overhang_min, 
                                          min_intron_size = min_intron_size)
-      combined <- union(levels(read_pair_pred$strand), levels(novel_exons$strand))
-      novel_exons <- full_join(mutate(read_pair_pred,
-                                      strand = factor(strand, levels = combined)),
-                               mutate(novel_exons,
-                                      strand = factor(strand, levels = combined)),
-                               by = c("seqnames", "start", "end", "strand", 
-                                      "lend", "rstart"))
+      novel_exons <- merge(novel_exons, read_pair_pred, all = TRUE)
+      novel_exons$seqnames <- droplevels(novel_exons$seqnames)
     }
   }
   
@@ -359,7 +382,9 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   novel_exons$min_reads <- pmin(novel_exons$unique_left,
                                 novel_exons$unique_right, na.rm = TRUE)
   novel_exons$ID <- 1:nrow(novel_exons)
+  
+  ## Filter all predictions with less than `min_unique` reads supporting both
+  ## SJs
+  novel_exons <- novel_exons %>% filter(min_reads >= min_unique)
   novel_exons
 }
-
-
