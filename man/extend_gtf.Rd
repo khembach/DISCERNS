@@ -4,7 +4,7 @@
 \alias{extend_gtf}
 \title{Extend GTF file with predicted exons}
 \usage{
-extend_gtf(gtf, pred)
+extend_gtf(gtf, pred, cores = 1)
 }
 \arguments{
 \item{gtf}{GTF annotations, either the path to the GTF file as a character
@@ -12,6 +12,8 @@ string or a GRanges object.}
 
 \item{pred}{data.frame with predicted novel exons as returned by
 \code{\link[=find_novel_exons]{find_novel_exons()}}.}
+
+\item{cores}{Integer scalar. Number of cores to use. Default 1.}
 }
 \value{
 GRanges object with annotations from the GTF file and extended with

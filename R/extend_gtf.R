@@ -139,6 +139,7 @@ new_transcript <- function(start, end, pred_id, tr_ids, exons) {
 #'   string or a GRanges object.
 #' @param pred data.frame with predicted novel exons as returned by
 #'   [find_novel_exons()].
+#' @param cores Integer scalar. Number of cores to use. Default 1.
 #'
 #' @return GRanges object with annotations from the GTF file and extended with
 #'   the novel exons.
@@ -164,7 +165,7 @@ new_transcript <- function(start, end, pred_id, tr_ids, exons) {
 #' ## save the new GTF to file with the export() function from rtracklayer
 #' library(rtracklayer)
 #' export(object = new_gtf, con = "extended_annotation.gtf")
-extend_gtf <- function(gtf, pred) {
+extend_gtf <- function(gtf, pred, cores = 1) {
   if (is.character(gtf)) {
     gtf <- import(gtf)
   }
@@ -175,18 +176,18 @@ extend_gtf <- function(gtf, pred) {
     tr_ids <- list(get_transcripts(pred$seqnames, pred$lend, pred$start,
                                    pred$end, pred$rstart, pred$strand,exons))
   } else {
-    ## TODO: speed up
-    tr_ids <- mapply(get_transcripts, pred$seqnames, pred$lend, pred$start,
-                     pred$end, pred$rstart, pred$strand,
-                     MoreArgs = list(exons = exons))
+    tr_ids <- mcmapply(get_transcripts, pred$seqnames, pred$lend, pred$start,
+                       pred$end, pred$rstart, pred$strand,
+                       MoreArgs = list(exons = exons), mc.cores = cores)
   }
   ## remove the novel exons that do not have a transcript
   ## TODO: what to do with the removed predictions?
   pred <- pred[lengths(tr_ids) > 0, ]
   tr_ids <- tr_ids[lengths(tr_ids) > 0]
   
-  novel_entries <- mapply(new_transcript, pred$start, pred$end, pred$ID, tr_ids,
-                          MoreArgs = list(exons = exons))
+  novel_entries <- mcmapply(new_transcript, pred$start, pred$end, pred$ID, 
+                            tr_ids, MoreArgs = list(exons = exons), 
+                            mc.cores = cores)
   
   ## extend the original gtf with the novel entries
   c(gtf, do.call("c", novel_entries))
