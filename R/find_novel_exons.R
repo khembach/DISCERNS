@@ -196,9 +196,9 @@
 #' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 #'                  bam = bam, lib_type = "SE", stranded = "unstranded")
 #'                  
-#' If STAR was run with parameter --outSJfilterOverhangMin (e.g.
-#' --outSJfilterOverhangMin 30 6 6 6), specify the minimal junction overhang
-#' with parameter overhang_min: 
+#' ## If STAR was run with parameter --outSJfilterOverhangMin (e.g.
+#' ## --outSJfilterOverhangMin 30 6 6 6), specify the minimal junction overhang
+#' ## with parameter overhang_min: 
 #' find_novel_exons(sj_filename = sj, annotation = anno, min_unique = 1,
 #'                  bam = bam, overhang_min = 6)
 #'                  

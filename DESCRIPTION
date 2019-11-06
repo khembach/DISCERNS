@@ -32,7 +32,8 @@ Imports:
     magrittr,
     rlang,
     GenomicFiles,
-    Rcpp (>= 1.0.2)
+    Rcpp (>= 1.0.2),
+    GenomeInfoDb
 Suggests: 
     BiocStyle,
     knitr,

@@ -45,16 +45,16 @@ import_novel_sj_reads <- function(bam, sj_unann) {
 #' region.
 #'
 #' @param bf BamFile object.
-#' @param g GRanges object specifying the genomic region from which to import
+#' @param region GRanges object specifying the genomic region from which to import
 #'   the reads.
-#' @param region
 #'
 #' @return GAlignments object with all reads from `bf` overlapping `i`.
 #' @export
 #' 
-get_reads <- function(bf, g, region){
+get_reads <- function(bf, region){
   reads <- readGAlignments(bf, index = bam, with.which_label = TRUE,
-                           param = ScanBamParam(which = g, what = c("qname")))
+                           param = ScanBamParam(which = region, 
+                                                what = c("qname")))
   reads <- reads[njunc(reads) > 0, ]
   junc <- junctions(reads, use.mcols = TRUE)
   names(junc) <- 1:length(junc)

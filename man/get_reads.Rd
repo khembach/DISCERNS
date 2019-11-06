@@ -4,15 +4,13 @@
 \alias{get_reads}
 \title{Import splice junction reads in a given genomic region}
 \usage{
-get_reads(bf, g, region)
+get_reads(bf, region)
 }
 \arguments{
 \item{bf}{BamFile object.}
 
-\item{g}{GRanges object specifying the genomic region from which to import
+\item{region}{GRanges object specifying the genomic region from which to import
 the reads.}
-
-\item{region}{}
 }
 \value{
 GAlignments object with all reads from \code{bf} overlapping \code{i}.
