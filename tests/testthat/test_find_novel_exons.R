@@ -18,9 +18,9 @@ novel_exon_df <- find_novel_exons(sj_filename = sj, annotation = anno,
 test_that("output from find_novel_exons is correct", {
   expect_s3_class(novel_exon_df, "data.frame")
   expect_equal(ncol(novel_exon_df), 10)
-  expect_equal(colnames(novel_exon_df), c("seqnames", "start", "end", "strand",
-                                         "lend", "rstart", "unique_left", 
-                                         "unique_right", "min_reads", "ID"))
+  expect_equal(colnames(novel_exon_df), c("seqnames", "lend", "start", "end", 
+                                          "rstart", "strand", "unique_left", 
+                                          "unique_right", "min_reads", "ID"))
   expect_s3_class(novel_exon_df$seqnames, "factor")
   expect_type(novel_exon_df$start, "integer")
   expect_type(novel_exon_df$end, "integer")

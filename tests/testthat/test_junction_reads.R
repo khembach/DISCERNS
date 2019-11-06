@@ -16,11 +16,11 @@ test_that("filter_junction_reads works correctly", {
   expect_error(filter_junction_reads(bam, stranded = "not stranded"), 
                'Parameter stranded has to be one of "unstranded", "forward" or "reverse".')
   
-  expect_s4_class(junc_reads, "GAlignments")
+  expect_type(junc_reads, "list")
   expect_true(length(junc_reads) > 0)
 })
 
-
+junc_reads <- do.call(c, junc_reads) 
 read_pred <- predict_jr_exon(junc_reads, anno)
 
 test_that("predict_jr_exon() input and output are correct", {
