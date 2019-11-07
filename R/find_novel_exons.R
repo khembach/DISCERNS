@@ -145,7 +145,7 @@
 #'@import GenomicRanges
 #'@import IRanges
 #'@importFrom S4Vectors queryHits subjectHits
-#'@importFrom dplyr full_join mutate filter
+#'@importFrom dplyr full_join mutate filter distinct
 #'@importFrom GenomeInfoDb seqlevels seqlevelsInUse
 #'@importFrom parallel mclapply
 #'@importFrom magrittr "%>%"
@@ -357,9 +357,11 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     }
   }
   
+  ## Filter the table with novel exons and remove all duplicate predictions
+  novel_exons <- distinct(novel_exons)
+  
   ## ============ Compute minimal junction read coverage ===========
   if(verbose) message("Computing minimal junction read coverage")
-  
   ##  Add columns with the number of reads supporting the left and right splice
   ##  junction and the minimum of both
   key_sj <- with(sj, paste(seqnames, start - 1, end + 1, strand, sep = "."))
