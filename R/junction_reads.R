@@ -196,9 +196,11 @@ predict_jr_exon <- function(junc_reads, annotation) {
 
   ## Per read, compute the coordinates of the novel exon
   read_pred <- novel_reads[, by = names,
-                           .(lend = start[1], start1 = end[1], end1 = start[2], 
-                             rstart = end[2], seqnames = unique(seqnames), 
+                           .(lend = start[1] - 1L, start1 = end[1] + 1L, 
+                             end1 = start[2] - 1L, rstart = end[2] + 1L, 
+                             seqnames = unique(seqnames), 
                              strand = unique(strand))]
+ 
   read_pred <- read_pred[,!"names"]
   setnames(read_pred, old = c("start1", "end1"), new = c("start", "end"))
   read_pred <- unique(read_pred)
@@ -286,7 +288,7 @@ predict_jrp_exon <- function(junc_reads, annotation,
   setkeyv(cigar_jp, "names")  ## sorting
 
   ## Reads might be duplicated because they overlap the tile boundaries. A read
-  ## name can apper at most 4 times - 4 consecutive rows - if both reads are
+  ## name can appear at most 4 times - 4 consecutive rows - if both reads are
   ## duplicated.
   ## This function consecutively processes all reads. We remove all duplicated
   ## reads and all read pairs with only one distince splice junction (both reads
