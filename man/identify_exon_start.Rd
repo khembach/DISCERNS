@@ -22,10 +22,10 @@ junction.}
 data.frame with the coordinates of the predicted exon(s)
 }
 \description{
-Given a set of reads that share a novel splice junction, determine the the
+Given a set of reads that share a novel splice junction, determine the
 coordinates of a novel exon at the start of the splice junction. Only reads
 with the splice junctions (the novel SJ and an upstream SJ) are considered.
 If there are no reads with a second upstream SJ, take the range of the
-longest mapped part as an approximation for the coordinates of the novel
-exon (it probably is a terminal exon).
+longest mapped part as an approximation for the coordinates of the novel exon
+(it probably is a terminal exon).
 }

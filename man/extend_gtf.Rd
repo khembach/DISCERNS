@@ -17,14 +17,14 @@ string or a GRanges object.}
 }
 \value{
 GRanges object with annotations from the GTF file and extended with
-the novel exons.
+the novel xons.
 }
 \description{
 Add predicted novel exons to the correct transcripts in a GTF annotation.
 }
 \details{
 For each novel exon in \code{pred} (as returned by \code{\link[=find_novel_exons]{find_novel_exons()}}), the list
-of transcripts that contain its up- and downstream exons is determined. A
+of transcripts that contain its up- and/or downstream exons is determined. A
 random exon from each transcript is copied and the start and end coordinates
 are exchanged with those of the novel exon. The \code{exon_number} and
 \code{exon_version} are set to NA. The new \code{exon_id}, \code{transcript_id} and
