@@ -17,14 +17,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // filter_exon_length
-LogicalVector filter_exon_length(DataFrame& df, int max_length);
-RcppExport SEXP _exondiscovery_filter_exon_length(SEXP dfSEXP, SEXP max_lengthSEXP) {
+LogicalVector filter_exon_length(DataFrame& df, int max_length, int min_intron_size);
+RcppExport SEXP _exondiscovery_filter_exon_length(SEXP dfSEXP, SEXP max_lengthSEXP, SEXP min_intron_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DataFrame& >::type df(dfSEXP);
     Rcpp::traits::input_parameter< int >::type max_length(max_lengthSEXP);
-    rcpp_result_gen = Rcpp::wrap(filter_exon_length(df, max_length));
+    Rcpp::traits::input_parameter< int >::type min_intron_size(min_intron_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(filter_exon_length(df, max_length, min_intron_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -42,7 +43,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_exondiscovery_get_unique_ind", (DL_FUNC) &_exondiscovery_get_unique_ind, 1},
-    {"_exondiscovery_filter_exon_length", (DL_FUNC) &_exondiscovery_filter_exon_length, 2},
+    {"_exondiscovery_filter_exon_length", (DL_FUNC) &_exondiscovery_filter_exon_length, 3},
     {"_exondiscovery_pred_exon_coord", (DL_FUNC) &_exondiscovery_pred_exon_coord, 1},
     {NULL, NULL, 0}
 };

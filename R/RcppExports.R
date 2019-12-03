@@ -5,8 +5,8 @@ get_unique_ind <- function(df) {
     .Call(`_exondiscovery_get_unique_ind`, df)
 }
 
-filter_exon_length <- function(df, max_length) {
-    .Call(`_exondiscovery_filter_exon_length`, df, max_length)
+filter_exon_length <- function(df, max_length, min_intron_size) {
+    .Call(`_exondiscovery_filter_exon_length`, df, max_length, min_intron_size)
 }
 
 pred_exon_coord <- function(df) {

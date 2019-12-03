@@ -266,20 +266,25 @@ predict_jrp_exon <- function(junc_reads, annotation,
   junc_rp <- junc_rp[mcols(junc_rp)$qname %chin% 
                        mcols(junc_rp)$qname[duplicated(mcols(junc_rp)$qname)]]
   
+  ## Create table with the SJ coordinates and the start + end of each read
   ## keep all reads pairs where the junctions are already annotated
   cigar_jp <- cigarRangesAlongReferenceSpace(cigar = cigar(junc_rp), 
                                              flag = mcols(junc_rp)$flag,
                                              pos = start(junc_rp),
                                              ops = "N")
-  ## add strand and seqnames info 
+  ## add strand, seqnames and the end of the first reads and the start of the
+  ## second
   names(cigar_jp) <- mcols(junc_rp)$qname
   cigar_jp <- as.data.table(unlist(cigar_jp))
   cigar_jp <- cigar_jp[, !"width"]
-  m <- match(cigar_jp$names, mcols(junc_rp)$qname)
-  cigar_jp[ , ':=' (seqnames = as.character(seqnames(junc_rp)[m]),
-                    strand = as.character(strand(junc_rp)[m]))]
-  rm(junc_rp, m)
-
+  ## cigar_jp has 7 columns: start, end, names, seqnames, strand, read_start,
+  ## read_end
+  # m <- match(cigar_jp$names, mcols(junc_rp)$qname)
+  cigar_jp[ , ':=' (seqnames = as.character(seqnames(junc_rp)),
+                    strand = as.character(strand(junc_rp)),
+                    read_start = start(junc_rp),
+                    read_end = end(junc_rp))]
+  rm(junc_rp)
   ## remove all duplicate junctions within one read pair and only keep the read
   ## pairs with two different junctions
   
@@ -296,17 +301,19 @@ predict_jrp_exon <- function(junc_reads, annotation,
   ind <- get_unique_ind(cigar_jp)
   cigar_jp <- cigar_jp[ind]
 
-  ## compute length of the novel exon and discard all exons that are longer than
-  ## the minimal intron length in STAR
+  ## Discard all exon pairs, where the distance between the paired reads is
+  ## bigger than the minimal intron length in STAR and where the distance
+  ## between the two SJs would theoretically allow an intron inbetween the two
+  ## reads.
   max_pairs_exon_len <- 2*(read_length - overhang_min) + min_intron_size
   
-  ## This function computes the lenght of the novel exon and removes the
-  ## prediction if the novel exon is longer than `max_pairs_exon_len`
-  
-  x <- filter_exon_length(cigar_jp, max_pairs_exon_len)
+  ## This function computes the length of the novel exon and removes the
+  ## prediction if the novel exon is longer than `max_pairs_exon_len` or if the
+  ## two read pairs are too far apart.
+  x <- filter_exon_length(cigar_jp, max_pairs_exon_len, min_intron_size)
   x <- cigar_jp[x, names]
-  
   cigar_jp <- cigar_jp[cigar_jp$names %chin% x, ]
+  
   cigar_jp_gr <- GRanges(cigar_jp)
   
   inbytx <- intronsByTranscript(annotation[["txdb"]], use.names = TRUE)
@@ -337,7 +344,6 @@ predict_jrp_exon <- function(junc_reads, annotation,
     cigar_jp_gr[mcols(cigar_jp_gr)$names %chin% read_id, ])
   setkeyv(novel_reads, c("names", "start"))
   
-  
   ## This function computes the coordinates of the novel exons. The input
   ## data.table is sorted by read name and SJ start position.
   
@@ -350,7 +356,6 @@ predict_jrp_exon <- function(junc_reads, annotation,
                                                     type = "equal",
                                                     invert = TRUE))
   read_pairs_pred <- read_pairs_pred[,!"width"]
-  
   
   ### Keep all exons that are located within gene boundaries (both annotated
   ### junctions are from the same gene)

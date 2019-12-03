@@ -53,14 +53,17 @@ LogicalVector get_unique_ind(DataFrame& df) {
 
 
 // [[Rcpp::export]]
-LogicalVector filter_exon_length(DataFrame& df, int max_length) {
+LogicalVector filter_exon_length(DataFrame& df, int max_length, int min_intron_size) {
   int n = df.nrow();
   LogicalVector idx(n);
   NumericVector s = df[0];
   NumericVector e = df[1];
+  NumericVector rs = df[5];
+  NumericVector re = df[6];
   int max_len = max_length;
+  int itron_len = min_intron_size;
   for(int i = 0;i<n-1;i++) {
-    if(s[i+1]-1 - (e[i]+1) < max_len) {
+    if(s[i+1]-1 - (e[i]+1) < max_len & (rs[i+1] - re[i] + 1) <= itron_len) {
       idx[i] = true;
       idx[i+1] = true;
     } 
