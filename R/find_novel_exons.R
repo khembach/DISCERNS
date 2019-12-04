@@ -285,7 +285,8 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   
   ind <- sapply(seq_along(sj_unann), function(x) { 
     x <- as.character(x)
-    filter_trans_splice_junctions(start_genes[[x]], end_genes[[x]], sj_genes[[x]])
+    filter_trans_splice_junctions(start_genes[[x]], end_genes[[x]], 
+                                  sj_genes[[x]])
     })
   
   sj_unann <- sj_unann[ind]  

@@ -30,7 +30,7 @@ supporting reads
 }
 \description{
 The exon predictions based on reads at the start or end of the novel splice
-junction, are filtered and in case there are no reads with two splice
+junction are filtered and in case there are no reads with two splice
 junctions (one of the coordinates is NA), determine if the novel exon could
 be terminal. If yes, take the exon predictions from the corresponding end of
 the splice junction.
