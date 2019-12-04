@@ -224,7 +224,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   exons <- annotation[["exons"]]
   introns <- annotation[["introns"]]
   
-  if (verbose) message("Reading splice junctions from file")
+  if (verbose) message("Reading splice junctions from file.")
   
   if (gzipped) {
     sj <- fread(cmd = paste0("zcat ", sj_filename))
@@ -238,7 +238,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   sj$strand <- c("*", "+", "-")[sj$strand + 1]
   
   ## ============= junction prefiltering ============= #
-  if (verbose) message("Prefiltering splice junctions")
+  if (verbose) message("Prefiltering splice junctions.")
   
   sj_gr <- GRanges(sj)
   
@@ -291,23 +291,28 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   
   sj_unann <- sj_unann[ind]  
   
+  if (verbose) {
+    message(paste0(length(sj_unann), " novel SJs left after filtering."))
+  }
+  
   ## ======== Cassette exon prediction ======== #
   
   if (verbose) message("Predicting cassette exons")
-  ce <- predict_cassette_exon(sj_unann, introns)
-  novel_exons <- ce[["ne"]]
-  if (length(ce[["sj"]]) > 0) {
-    sj_unann <- ce[["sj"]]
-  } else {
-    single_sj <- FALSE
-    if (verbose) message("No novel SJs left, skipping single SJ step.")
+  if (length(sj_unann) > 0) {
+    ce <- predict_cassette_exon(sj_unann, introns)
+    novel_exons <- ce[["ne"]]
+    if (length(ce[["sj"]]) > 0) {
+      sj_unann <- ce[["sj"]]
+    } else {
+      single_sj <- FALSE
+      if (verbose) message("No novel SJs left, skipping single SJ step.")
+    }
   }
   
   ## ==== Find novel exon coordinates from single novel splice junctions ======
   if (single_sj) {
     if (verbose)
-      message("Find exon coordinates of exons adjacent to novel splice junctions")
-      message("Importing novel SJ reads, this might take some time...")
+      message("Finding exon coordinates of exons adjacent to novel splice junctions.")
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
     }
@@ -326,6 +331,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     ## remove the ambiguous sj that touch different genes on both ends
     sj_unann <- sj_unann[!is.na(touching), ]
     
+    if (verbose) message("Importing reads that overlap with novel SJs.")
     ## TODO: is this really necessary? This is faster when using 15 cores...
     if(cores > 5){  
       reads <- import_novel_sj_reads_parallel(bam, yield_size = yield_size, 
@@ -334,7 +340,8 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     } else {
       reads <- import_novel_sj_reads(bam, sj_unann)
     }
-
+    
+    if (verbose) message("Predicting exons from single novel SJs.")
     sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
     novel_exons <- rbind(novel_exons, 
                          identify_exon_from_sj(sj_unann, reads = reads,
@@ -346,7 +353,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   
   if (read_based) {
     ## ============ Predict novel exons from reads with 2 junctions ==============
-    if (verbose) message("Predict novel exons from reads with 2 junctions")
+    if (verbose) message("Importing all reads with SJs.")
     
     if (missing(bam)) {
       stop("Please specify a BAM file with parameter bam.")
@@ -364,6 +371,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
                   " resulted in an empty GAlignments object."))
     }
     
+    if (verbose) message("Predicting novel exons from reads with 2 junctions.")
     read_pred <- predict_jr_exon(junc_reads, annotation)
     
     if (exists("novel_exons", inherits = FALSE)) {
@@ -376,7 +384,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     
     ## ======= Predict novel exons from read pairs with each one junction =======
     if (lib_type == "PE") {
-      if (verbose) message("Predict novel exons from read pairs with each 1 junction")
+      if (verbose) message("Predicting novel exons from read pairs with each 1 junction.")
       read_pair_pred <- predict_jrp_exon(junc_reads, annotation, 
                                          read_length = read_length, 
                                          overhang_min = overhang_min, 
@@ -390,7 +398,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   novel_exons <- distinct(novel_exons)
   
   ## ============ Compute minimal junction read coverage ===========
-  if(verbose) message("Computing minimal junction read coverage")
+  if(verbose) message("Computing minimal junction read coverage.")
   ##  Add columns with the number of reads supporting the left and right splice
   ##  junction and the minimum of both
   key_sj <- with(sj, paste(seqnames, start - 1, end + 1, strand, sep = "."))
