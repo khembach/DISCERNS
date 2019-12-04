@@ -71,12 +71,12 @@ upstream_count <- function(x) {
 
 #' Determine the coordinates of a novel exon at the start of a splice junction
 #'
-#' Given a set of reads that share a novel splice junction, determine the the
+#' Given a set of reads that share a novel splice junction, determine the
 #' coordinates of a novel exon at the start of the splice junction. Only reads
 #' with the splice junctions (the novel SJ and an upstream SJ) are considered.
 #' If there are no reads with a second upstream SJ, take the range of the
-#' longest mapped part as an approximation for the coordinates of the novel
-#' exon (it probably is a terminal exon).
+#' longest mapped part as an approximation for the coordinates of the novel exon
+#' (it probably is a terminal exon).
 #' 
 #' @param r GAlignments object with reads that contain the novel splice
 #'   junction.
@@ -94,7 +94,7 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
   sj_hit <- which(r_ranges$end == j_start - 1)
   sj_hit_upstream <- sj_hit[r_ranges$nr[sj_hit] > 1]
   if (length(sj_hit_upstream) > 0) {
-    ## if there are reads with an junction upstream of the SJ of interest
+    ## if there are reads with a junction upstream of the SJ of interest
     unique(data.frame(seqnames = j_seqnames,
                       lend = r_ranges$end[sj_hit_upstream - 1L],
                       start = r_ranges$start[sj_hit_upstream],
@@ -117,7 +117,7 @@ identify_exon_start <- function(r, j_start, j_end, j_seqnames, j_strand) {
 #' Filter novel exon predictions of potential terminal exon
 #'
 #' The exon predictions based on reads at the start or end of the novel splice
-#' junction, are filtered and in case there are no reads with two splice
+#' junction are filtered and in case there are no reads with two splice
 #' junctions (one of the coordinates is NA), determine if the novel exon could
 #' be terminal. If yes, take the exon predictions from the corresponding end of
 #' the splice junction.
@@ -295,7 +295,7 @@ get_second_sj <- function(junctions, reads, touching, txdb, gtxdb, ebyTr,
 #'   `seqnames`, `lend`, `start`, `end`, `rstart` and `strand`.
 #'
 #' @importFrom dplyr bind_rows
-#' @importFrom GenomicFeatures genes exonsBy
+#' @importFrom GenomicFeatures genes exonsBy exons
 #'
 #' @export
 identify_exon_from_sj <- function(df, reads, txdb, cores) {
@@ -307,6 +307,41 @@ identify_exon_from_sj <- function(df, reads, txdb, cores) {
   ## split the junctions by type: "start", "end" or "both"
   js <- split(df, factor(df$touching))
   res <- lapply(names(js), function(x) get_second_sj(js[[x]], reads, x, txdb,
-                                                      gtxdb, ebyTr, cores))
-  dplyr::bind_rows(res)
+                                                     gtxdb, ebyTr, cores))
+  res <- dplyr::bind_rows(res)
+  
+  ## Remove all predicted exons that are already annotated
+  annotated <- unique(queryHits(findOverlaps(GRanges(res), exons(txdb), 
+                                             type = "equal", 
+                                             ignore.strand = FALSE)))
+  if (length(annotated) > 0){
+    res <- res[-annotated,]
+  }
+  
+  ## Remove all predictions that cross gene boundaries and splice into a second
+  ## gene. We overlap the start and end of the novel event with the genes, if
+  ## both overlap with different genes, then we remove the exon.
+  start <- pmin(res$lend, res$start, na.rm = TRUE)
+  end <- pmax(res$end, res$rstart, na.rm = TRUE)
+  start_r <- GRanges(res$seqnames, ranges = IRanges(start, start), 
+                     strand = res$strand)
+  end_r <- GRanges(res$seqnames, ranges = IRanges(end, end), 
+                   strand = res$strand)
+  
+  start_genes <- findOverlaps(start_r, gtxdb)
+  end_genes <- findOverlaps(end_r, gtxdb)
+  pred_genes <- findOverlaps(GRanges(res), gtxdb)
+  
+  ## List with overlapping genes per location
+  start_genes <- split(subjectHits(start_genes), queryHits(start_genes))
+  end_genes <- split(subjectHits(end_genes), queryHits(end_genes))
+  pred_genes <- split(subjectHits(pred_genes), queryHits(pred_genes))
+  
+  ind <- sapply(1:nrow(res), function(x) { 
+    x <- as.character(x)
+    filter_trans_splice_junctions(start_genes[[x]], end_genes[[x]], 
+                                  pred_genes[[x]])
+  })
+  
+  res[ind,] 
 }

@@ -1,3 +1,44 @@
+#' Filter novel splice junctions based on overlapping genes
+#'
+#' This function filters splice junctions based on the genes that overlap with
+#' the start and end of the splice junction, and that are crossed by the splice
+#' junction.
+#'
+#' @param sg Integer vector. Index of the genes that overlap with the SJ start.
+#' @param eg Integer vector. Index of the genes that overlap with the SJ end.
+#' @param sjg Integer vector. Index of the genes that overlap with the SJ.
+#'
+#' @return Logical scalar. FALSE if the start and end of the SJ overlap with
+#'   different genes.
+#' @export
+#'
+filter_trans_splice_junctions <- function(sg, eg, sjg) {
+  if (!is.null(sg)) { ## sg is defined
+    if (!is.null(eg)){  ## eg is defined
+      if (setequal(sg, eg)) { ## both are defined and equal
+        TRUE          
+      } else {
+        FALSE 
+      }
+    } else {  ## sg is defined and eg is NULL
+      if (setequal(c(sg, eg), sjg)) {  ## start and end cover the same genes
+        TRUE
+      } else {
+        FALSE   
+      }
+    }
+  } else if(!is.null(eg)) { ## sg is not defined and eg is defined
+    if (setequal(c(sg, eg), sjg)) {  ## start and end cover the same genes
+      TRUE
+    } else {
+      FALSE   
+    }
+  } else {  ## both are not defined
+    FALSE
+  }
+}
+
+
 #' Determine which side of the splice junction touches an exon
 #'
 #' Find all exons with the same strand as the splice junction and that touch it.

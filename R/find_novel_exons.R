@@ -232,7 +232,7 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     sj <- fread(sj_filename)
   }
   colnames(sj) <- c("seqnames", "start", "end", "strand", "motif", "annotated",
-                    "unique", "mutimapping", "maxoverhang")
+                    "unique", "multimapping", "maxoverhang")
   
   #strand: (0: undefined, 1: +, 2: -)
   sj$strand <- c("*", "+", "-")[sj$strand + 1]
@@ -261,6 +261,35 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   sj_unann <- sj_unann[(start(sj_unann) - 1) %in% end(exons) |
                          (end(sj_unann) + 1) %in% start(exons), ]
   
+  ## We overlap the start and end of the SJ with the genes, if both overlap with
+  ## different genes, then we remove the SJ. It possibly comes from a wrongly
+  ## mapped read.
+  end_sj <- sj_unann
+  end(end_sj) <- end(end_sj) + 1
+  start(end_sj) <- end(end_sj)
+  start_sj <- sj_unann
+  start(start_sj) <- start(start_sj) -1
+  end(start_sj) <- start(start_sj)
+  
+  start_genes <- findOverlaps(start_sj, genes(annotation[["txdb"]]))
+  end_genes <- findOverlaps(end_sj, genes(annotation[["txdb"]]))
+  sj_genes <- findOverlaps(sj_unann, genes(annotation[["txdb"]]))
+  
+  ## We compare the genes at the start or end of the SJ and all the genes that
+  ## are located inside the SJ
+  
+  ## List with overlapping genes per location
+  start_genes <- split(subjectHits(start_genes), queryHits(start_genes))
+  end_genes <- split(subjectHits(end_genes), queryHits(end_genes))
+  sj_genes <- split(subjectHits(sj_genes), queryHits(sj_genes))
+  
+  ind <- sapply(seq_along(sj_unann), function(x) { 
+    x <- as.character(x)
+    filter_trans_splice_junctions(start_genes[[x]], end_genes[[x]], sj_genes[[x]])
+    })
+  
+  sj_unann <- sj_unann[ind]  
+  
   ## ======== Cassette exon prediction ======== #
   
   if (verbose) message("Predicting cassette exons")
@@ -282,15 +311,6 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
       stop("Please specify a BAM file with parameter bam.")
     }
     
-    ## TODO: is this really necessary? This is faster when using 15 cores...
-    if(cores > 5){  
-      reads <- import_novel_sj_reads_parallel(bam, yield_size = yield_size, 
-                                               sj_unann, cores = cores)
-      reads <- do.call("c", reads) 
-    } else {
-      reads <- import_novel_sj_reads(bam, sj_unann)
-    }
-     
     ## annotate which end of a splice junction is touching an annotated exon
     ## We only use the exon with seqnames that are in the list of novel SJs
     touching <- mclapply(seq_along(sj_unann), function(i) 
@@ -305,8 +325,16 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
     ## remove the ambiguous sj that touch different genes on both ends
     sj_unann <- sj_unann[!is.na(touching), ]
     
+    ## TODO: is this really necessary? This is faster when using 15 cores...
+    if(cores > 5){  
+      reads <- import_novel_sj_reads_parallel(bam, yield_size = yield_size, 
+                                              sj_unann, cores = cores)
+      reads <- do.call("c", reads) 
+    } else {
+      reads <- import_novel_sj_reads(bam, sj_unann)
+    }
+
     sj_unann <- data.frame(sj_unann, stringsAsFactors = TRUE)
-    
     novel_exons <- rbind(novel_exons, 
                          identify_exon_from_sj(sj_unann, reads = reads,
                                                txdb = annotation[["txdb"]], 
