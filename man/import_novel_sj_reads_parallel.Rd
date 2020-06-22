@@ -4,8 +4,7 @@
 \alias{import_novel_sj_reads_parallel}
 \title{Import reads with novel splice junctions in parallel}
 \usage{
-import_novel_sj_reads_parallel(bam, yield_size = 2e+05, sj_unann,
-  cores = 1)
+import_novel_sj_reads_parallel(bam, yield_size = 2e+05, sj_unann, cores = 1)
 }
 \arguments{
 \item{bam}{Character string. The path to the BAM file.}

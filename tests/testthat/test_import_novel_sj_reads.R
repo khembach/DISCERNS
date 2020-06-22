@@ -1,14 +1,14 @@
 context("Import novel SJ reads")
 
-library(exondiscovery)
+library(DISCERNS)
 
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS", 
                    mustWork = TRUE)
 anno <- prepare_annotation(gtf)
 sj <- system.file("extdata", "selected.SJ.out.tab", 
-                  package = "exondiscovery", mustWork = TRUE)
+                  package = "DISCERNS", mustWork = TRUE)
 bam <- system.file("extdata", "selected.bam", 
-                   package = "exondiscovery", mustWork = TRUE)
+                   package = "DISCERNS", mustWork = TRUE)
 
 sj <- fread(sj)
 colnames(sj) <- c("seqnames", "start", "end", "strand", "motif", "annotated",

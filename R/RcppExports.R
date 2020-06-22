@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 get_unique_ind <- function(df) {
-    .Call(`_exondiscovery_get_unique_ind`, df)
+    .Call(`_DISCERNS_get_unique_ind`, df)
 }
 
 filter_exon_length <- function(df, max_length, min_intron_size) {
-    .Call(`_exondiscovery_filter_exon_length`, df, max_length, min_intron_size)
+    .Call(`_DISCERNS_filter_exon_length`, df, max_length, min_intron_size)
 }
 
 pred_exon_coord <- function(df) {
-    .Call(`_exondiscovery_pred_exon_coord`, df)
+    .Call(`_DISCERNS_pred_exon_coord`, df)
 }
 

@@ -290,7 +290,7 @@ new_internal_transcript <- function(seqn, lend, start, end, rstart, strand,
 #' @export
 #'
 #' @examples
-#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery",
+#' gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS",
 #'                    mustWork = TRUE)
 #'
 #' ## Here we artificially create a data.frame with predicted exons.

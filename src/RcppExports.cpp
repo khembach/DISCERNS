@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // get_unique_ind
 LogicalVector get_unique_ind(DataFrame& df);
-RcppExport SEXP _exondiscovery_get_unique_ind(SEXP dfSEXP) {
+RcppExport SEXP _DISCERNS_get_unique_ind(SEXP dfSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,7 +18,7 @@ END_RCPP
 }
 // filter_exon_length
 LogicalVector filter_exon_length(DataFrame& df, int max_length, int min_intron_size);
-RcppExport SEXP _exondiscovery_filter_exon_length(SEXP dfSEXP, SEXP max_lengthSEXP, SEXP min_intron_sizeSEXP) {
+RcppExport SEXP _DISCERNS_filter_exon_length(SEXP dfSEXP, SEXP max_lengthSEXP, SEXP min_intron_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -31,7 +31,7 @@ END_RCPP
 }
 // pred_exon_coord
 DataFrame pred_exon_coord(DataFrame& df);
-RcppExport SEXP _exondiscovery_pred_exon_coord(SEXP dfSEXP) {
+RcppExport SEXP _DISCERNS_pred_exon_coord(SEXP dfSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,13 +42,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_exondiscovery_get_unique_ind", (DL_FUNC) &_exondiscovery_get_unique_ind, 1},
-    {"_exondiscovery_filter_exon_length", (DL_FUNC) &_exondiscovery_filter_exon_length, 3},
-    {"_exondiscovery_pred_exon_coord", (DL_FUNC) &_exondiscovery_pred_exon_coord, 1},
+    {"_DISCERNS_get_unique_ind", (DL_FUNC) &_DISCERNS_get_unique_ind, 1},
+    {"_DISCERNS_filter_exon_length", (DL_FUNC) &_DISCERNS_filter_exon_length, 3},
+    {"_DISCERNS_pred_exon_coord", (DL_FUNC) &_DISCERNS_pred_exon_coord, 1},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_exondiscovery(DllInfo *dll) {
+RcppExport void R_init_DISCERNS(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

@@ -4,8 +4,14 @@
 \alias{filter_junction_reads}
 \title{Junction reads from BAM file}
 \usage{
-filter_junction_reads(bam, lib_type = "PE", stranded = "reverse",
-  cores = 1, yield_size = 2e+05, tile_width = 1e+07)
+filter_junction_reads(
+  bam,
+  lib_type = "PE",
+  stranded = "reverse",
+  cores = 1,
+  yield_size = 2e+05,
+  tile_width = 1e+07
+)
 }
 \arguments{
 \item{bam}{Character string. The path to the BAM file.}

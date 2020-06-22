@@ -4,8 +4,16 @@
 \alias{new_right_terminal_transcript}
 \title{Create new GTF annotation for a novel right terminal exon}
 \usage{
-new_right_terminal_transcript(seqn, lend, start, end, strand, pred_id,
-  exons, tran)
+new_right_terminal_transcript(
+  seqn,
+  lend,
+  start,
+  end,
+  strand,
+  pred_id,
+  exons,
+  tran
+)
 }
 \arguments{
 \item{seqn}{Character string or factor. seqname of the novel exon.}

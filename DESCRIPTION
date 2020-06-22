@@ -12,11 +12,11 @@ Description: The DISCERNS package predicts novel exons from RNA-seq data
     exons. Existing genome annotations in GTF format can be extended with 
     predicted exons.
 License: GPL (>=2)
-URL: https://github.com/khembach/exondiscovery
-BugReports: https://github.com/khembach/exondiscovery/issues
+URL: https://github.com/khembach/DISCERNS
+BugReports: https://github.com/khembach/DISCERNS/issues
 Encoding: UTF-8
 LazyData: TRUE
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
 Depends: R (>= 3.6.0)
 Imports:

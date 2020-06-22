@@ -1,4 +1,4 @@
 library(testthat)
-library(exondiscovery)
+library(DISCERNS)
 
-test_check("exondiscovery")
+test_check("DISCERNS")

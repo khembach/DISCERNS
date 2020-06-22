@@ -13,7 +13,7 @@
 #' @export
 #' 
 #' @examples
-#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+#' gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS", 
 #'                    mustWork = TRUE)
 #' anno <- prepare_annotation(gtf)
 #' names(anno)

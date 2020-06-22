@@ -1,8 +1,8 @@
 context("Prepare GTF annotation")
 
-library(exondiscovery)
+library(DISCERNS)
 
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS", 
                    mustWork = TRUE)
 anno <- prepare_annotation(gtf)
 

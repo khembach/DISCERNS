@@ -32,7 +32,7 @@ are exchanged with those of the novel exon. The \code{exon_number} and
 novel exon by its ID: e.g. \code{exon_id}_ID or \code{transcript_name}_ID.
 }
 \examples{
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery",
+gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS",
                    mustWork = TRUE)
 
 ## Here we artificially create a data.frame with predicted exons.

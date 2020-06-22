@@ -154,12 +154,12 @@
 #'
 #'@examples
 #' sj <- system.file("extdata", "selected.SJ.out.tab",
-#'                   package = "exondiscovery", mustWork = TRUE)
+#'                   package = "DISCERNS", mustWork = TRUE)
 #' bam <- system.file("extdata", "selected.bam",
-#'                    package = "exondiscovery", mustWork = TRUE)
+#'                    package = "DISCERNS", mustWork = TRUE)
 #'
 #' ## prepare annotation
-#' gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery",
+#' gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS",
 #'                    mustWork = TRUE)
 #' anno <- prepare_annotation(gtf)
 #'

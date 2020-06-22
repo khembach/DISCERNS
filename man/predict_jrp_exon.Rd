@@ -4,8 +4,13 @@
 \alias{predict_jrp_exon}
 \title{Predict novel exons from read pairs with two splice junctions}
 \usage{
-predict_jrp_exon(junc_reads, annotation, read_length = 101,
-  overhang_min = 12, min_intron_size = 21)
+predict_jrp_exon(
+  junc_reads,
+  annotation,
+  read_length = 101,
+  overhang_min = 12,
+  min_intron_size = 21
+)
 }
 \arguments{
 \item{junc_reads}{GAlignments object with junction reads.}
@@ -33,7 +38,7 @@ columns: \code{seqnames}, \code{lend}, \code{start}, \code{end}, \code{rstart} a
 Novel exons are predicted from paired-end reads where each read spans one
 splice junction. First, the read pairs are filtered and the distance between
 the end of the first junction and the start of the second junction has to be
-\code{< 2 * (read_length - overhang_min) + min_intron_size}. Here, \code{read_length}
+\verb{< 2 * (read_length - overhang_min) + min_intron_size}. Here, \code{read_length}
 is the length of the reads, \code{overhang_min} is the minmal required read
 overhang over a splice junction of the alignment tool and \code{min_intron_size}
 is the minimal required intron length of the alignment tool. For example,

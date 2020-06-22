@@ -1,8 +1,8 @@
 context("Extend GTF annotation")
 
-library(exondiscovery)
+library(DISCERNS)
 
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS", 
                    mustWork = TRUE)
 
 novel_exons <- data.frame(seqnames = c("19", "22"),

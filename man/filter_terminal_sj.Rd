@@ -4,8 +4,14 @@
 \alias{filter_terminal_sj}
 \title{Filter novel exon predictions of potential terminal exon}
 \usage{
-filter_terminal_sj(start_coords, end_coords, j, txdb = txdb,
-  gtxdb = gtxdb, ebyTr = ebyTr)
+filter_terminal_sj(
+  start_coords,
+  end_coords,
+  j,
+  txdb = txdb,
+  gtxdb = gtxdb,
+  ebyTr = ebyTr
+)
 }
 \arguments{
 \item{start_coords}{data.frame with exon predictions at the start of the

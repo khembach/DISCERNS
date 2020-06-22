@@ -1,12 +1,12 @@
 context("Predict exons from junction reads and read pairs")
 
-library(exondiscovery)
+library(DISCERNS)
 
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery", 
+gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS", 
                    mustWork = TRUE)
 anno <- prepare_annotation(gtf)
 bam <- system.file("extdata", "selected.bam", 
-                   package = "exondiscovery", mustWork = TRUE)
+                   package = "DISCERNS", mustWork = TRUE)
 
 junc_reads <- filter_junction_reads(bam, lib_type = "PE", stranded = "reverse")
 

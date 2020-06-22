@@ -4,8 +4,17 @@
 \alias{new_internal_transcript}
 \title{Create new GTF annotation for a novel internal exon}
 \usage{
-new_internal_transcript(seqn, lend, start, end, rstart, strand, pred_id,
-  exons, tran)
+new_internal_transcript(
+  seqn,
+  lend,
+  start,
+  end,
+  rstart,
+  strand,
+  pred_id,
+  exons,
+  tran
+)
 }
 \arguments{
 \item{seqn}{Character string or factor. seqname of the novel exon.}

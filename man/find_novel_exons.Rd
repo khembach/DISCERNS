@@ -4,11 +4,24 @@
 \alias{find_novel_exons}
 \title{Novel exon prediction}
 \usage{
-find_novel_exons(sj_filename, annotation, min_unique = 1,
-  gzipped = FALSE, verbose = TRUE, bam, single_sj = TRUE,
-  read_based = TRUE, yield_size = 2e+05, lib_type = "PE",
-  stranded = "reverse", read_length = 101, overhang_min = 12,
-  min_intron_size = 21, cores = 1, tile_width = 1e+07)
+find_novel_exons(
+  sj_filename,
+  annotation,
+  min_unique = 1,
+  gzipped = FALSE,
+  verbose = TRUE,
+  bam,
+  single_sj = TRUE,
+  read_based = TRUE,
+  yield_size = 2e+05,
+  lib_type = "PE",
+  stranded = "reverse",
+  read_length = 101,
+  overhang_min = 12,
+  min_intron_size = 21,
+  cores = 1,
+  tile_width = 1e+07
+)
 }
 \arguments{
 \item{sj_filename}{Path to SJ.out.tab file.}
@@ -159,7 +172,7 @@ compared with the annotated SJs per transcript and already annotated SJ pairs
 are removed.
 For paired-end reads, there is an additional requirement: The distance between
 the end of the first read in a pair and the start of the second read has to be
-\code{< 2*(readlength-minOverhang) + minIntronSize}. Here, \code{readlength} is the
+\verb{< 2*(readlength-minOverhang) + minIntronSize}. Here, \code{readlength} is the
 length of the reads, \code{minOverhang} is the minmal required read overhang over a
 SJ of the alignment tool and \code{minIntronSize} is the minimal required intron
 length of the alignment tool. For example, paired-end reads with a lenght of
@@ -175,12 +188,12 @@ because of wrongly mapped reads.
 }
 \examples{
 sj <- system.file("extdata", "selected.SJ.out.tab",
-                  package = "exondiscovery", mustWork = TRUE)
+                  package = "DISCERNS", mustWork = TRUE)
 bam <- system.file("extdata", "selected.bam",
-                   package = "exondiscovery", mustWork = TRUE)
+                   package = "DISCERNS", mustWork = TRUE)
 
 ## prepare annotation
-gtf <- system.file("extdata", "selected.gtf", package = "exondiscovery",
+gtf <- system.file("extdata", "selected.gtf", package = "DISCERNS",
                    mustWork = TRUE)
 anno <- prepare_annotation(gtf)
 
