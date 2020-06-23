@@ -323,28 +323,31 @@ extend_gtf <- function(gtf, pred, cores = 1) {
 
   if ("left_terminal" %in% names(pred_split)) {
     p <- pred_split[["left_terminal"]]
-    novel_entries <- mcmapply(new_left_terminal_transcript, p$seqnames, p$start, 
-                              p$end, p$rstart, p$strand, p$ID,
-                              MoreArgs = list(exons = exons, tran = tran), 
-                              mc.cores = cores, SIMPLIFY = FALSE)
-    gtf <- c(gtf, do.call("c", novel_entries[!sapply(novel_entries, is.null)]))
+    novel_entries <- as(mcmapply(new_left_terminal_transcript, p$seqnames, 
+                                 p$start, p$end, p$rstart, p$strand, p$ID,
+                                 MoreArgs = list(exons = exons, tran = tran), 
+                                 mc.cores = cores, SIMPLIFY = FALSE),
+                        "GRangesList")
+    gtf <- c(gtf, unlist(novel_entries))
     
   }
   if ("right_terminal" %in% names(pred_split)) {
     p <- pred_split[["right_terminal"]]
-    novel_entries <- mcmapply(new_right_terminal_transcript, p$seqnames, p$lend,
-                              p$start, p$end, p$strand, p$ID,
-                              MoreArgs = list(exons = exons, tran = tran), 
-                              mc.cores = cores, SIMPLIFY = FALSE)
-    gtf <- c(gtf, do.call("c", novel_entries[!sapply(novel_entries, is.null)]))
+    novel_entries <- as(mcmapply(new_right_terminal_transcript, p$seqnames, 
+                                 p$lend, p$start, p$end, p$strand, p$ID, 
+                                 MoreArgs = list(exons = exons, tran = tran),
+                                 mc.cores = cores, SIMPLIFY = FALSE),
+                        "GRangesList")
+    gtf <- c(gtf, unlist(novel_entries))
   }
   if ("internal" %in% names(pred_split)) {
     p <- pred_split[["internal"]]
-    novel_entries <- mcmapply(new_internal_transcript, p$seqnames, p$lend,
-                              p$start, p$end, p$rstart, p$strand, p$ID,
-                              MoreArgs = list(exons = exons, tran = tran), 
-                              mc.cores = cores, SIMPLIFY = FALSE)
-    gtf <- c(gtf, do.call("c", novel_entries[!sapply(novel_entries, is.null)]))
+    novel_entries <- as(mcmapply(new_internal_transcript, p$seqnames, p$lend,
+                                 p$start, p$end, p$rstart, p$strand, p$ID,
+                                 MoreArgs = list(exons = exons, tran = tran), 
+                                 mc.cores = cores, SIMPLIFY = FALSE),
+                        "GRangesList")
+    gtf <- c(gtf, unlist(novel_entries))
   }
   gtf
 }
