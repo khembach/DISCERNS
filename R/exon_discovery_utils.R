@@ -70,7 +70,7 @@ sj_touching_exon <- function(seqnames, start, end, strand, exons) {
   if (length(s) > 0){
     if (length(e) > 0){
       ## pair of touching exons from the same gene
-      if (any(mcols(s)$gene_id %in% mcols(e)$gene_id)) {
+      if (any(match(mcols(s)$gene_id, mcols(e)$gene_id, nomatch = 0) > 0)) {
         "both"
       } else NA
     } else "start"

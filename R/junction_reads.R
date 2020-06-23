@@ -320,7 +320,8 @@ predict_jrp_exon <- function(junc_reads, annotation,
   intr_gtf <- unlist(inbytx)
   
   ## unify the seqnames of the novel SJs and the annotation
-  intr_gtf <- intr_gtf[seqnames(intr_gtf) %in% seqlevels(cigar_jp_gr)]
+  intr_gtf <- intr_gtf[match(seqnames(intr_gtf), seqlevels(cigar_jp_gr), 
+                             nomatch = 0) > 0]
   GenomeInfoDb::seqlevels(intr_gtf) <- seqlevelsInUse(intr_gtf)
   
   ## Keep all reads with annotated junctions

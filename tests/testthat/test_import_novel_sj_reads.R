@@ -16,7 +16,7 @@ colnames(sj) <- c("seqnames", "start", "end", "strand", "motif", "annotated",
 sj$strand <- c("*", "+", "-")[sj$strand + 1]
 sj_gr <- GRanges(sj)
 sj_ann <- subsetByOverlaps(sj_gr, anno[["introns"]], type = "equal")
-sj_unann <- sj_gr[!(sj_gr %in% sj_ann)]
+sj_unann <- sj_gr[!match(sj_gr, sj_ann, nomatch = 0) > 0]
 sj_unann <- sj_unann[(start(sj_unann) - 1) %in% end(anno[["exons"]]) |
                        (end(sj_unann) + 1) %in% start(anno[["exons"]]), ]
 

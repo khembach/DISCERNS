@@ -244,14 +244,14 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
   
   ## unify the seqnames of the novel SJs and the annotation
   ## SJs that are not present in the annotation will be removed
-  sj_gr <- sj_gr[seqnames(sj_gr) %in% 
-                   c(seqnames(annotation[["exons"]]), 
-                     seqnames(annotation[["introns"]]))]
+  sj_gr <- sj_gr[match(seqnames(sj_gr), c(seqnames(annotation[["exons"]]),
+                                          seqnames(annotation[["introns"]])),
+                       nomatch = 0) > 0]
   GenomeInfoDb::seqlevels(sj_gr) <- seqlevelsInUse(sj_gr)
 
   ## filter out all annotated junctions
   sj_ann <- subsetByOverlaps(sj_gr, introns, type = "equal")
-  sj_unann <- sj_gr[!(sj_gr %in% sj_ann)]
+  sj_unann <- sj_gr[!match(sj_gr, sj_ann, nomatch = 0) > 0]
   
   ## filter out all junctions with less than min_unique reads
   sj_unann <- sj_unann[mcols(sj_unann)$unique >= min_unique]
@@ -323,7 +323,8 @@ find_novel_exons <- function(sj_filename, annotation, min_unique = 1,
       sj_touching_exon(as.character(seqnames(sj_unann[i])), 
                        start(sj_unann[i]), end(sj_unann[i]), 
                        strand(sj_unann[i]), 
-                       exons = exons[seqnames(exons) %in% seqnames(sj_unann)]), 
+                       exons = exons[match(seqnames(exons), seqnames(sj_unann),
+                                           nomatch = 0) > 0]), 
       mc.cores = cores)
     touching <- unlist(touching)
     
